@@ -13,7 +13,7 @@ DATABASE_URL = "mysql+pymysql://root:@localhost/undersound"
 engine = create_engine(DATABASE_URL, echo=True)
 
 # Configurações de segurança
-SECRET_KEY = "sua_chave_secreta_super_segura_aqui"
+SECRET_KEY = "testeapipfc"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
@@ -62,7 +62,6 @@ class Playlist(SQLModel, table=True):
     owner: User = Relationship(back_populates="playlists")
     musics: List["PlaylistMusic"] = Relationship(back_populates="playlist")
 
-# Tabela de associação para relação muitos-para-muitos
 class PlaylistMusic(SQLModel, table=True):
     playlist_id: int = Field(foreign_key="playlist.id", primary_key=True)
     music_id: int = Field(foreign_key="music.id", primary_key=True)
@@ -71,7 +70,7 @@ class PlaylistMusic(SQLModel, table=True):
     playlist: Playlist = Relationship(back_populates="musics")
     music: Music = Relationship(back_populates="playlists")
 
-# Modelos Pydantic para requests/responses
+# Modelos Pydantic
 class UserCreate(BaseModel):
     username: str
     email: str
@@ -166,7 +165,7 @@ def create_access_token(data: dict):
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
 
-# Dependency para sessão do banco
+# Acesso ao banco
 def get_session():
     with Session(engine) as session:
         yield session
@@ -214,11 +213,8 @@ def login_for_access_token(
 
 @app.post("/register", response_model=UserResponse)
 def register_user(user: UserCreate, session: Session = Depends(get_session)):
-    # Verifica se username já existe
     if get_user_by_username(session, user.username):
         raise HTTPException(status_code=400, detail="Username already registered")
-    
-    # Verifica se email já existe
     if get_user_by_email(session, user.email):
         raise HTTPException(status_code=400, detail="Email already registered")
     
@@ -257,7 +253,6 @@ async def update_user_me(
     session.refresh(current_user)
     return current_user
 
-# Rotas para Artistas
 @app.post("/artists/", response_model=ArtistResponse)
 def create_artist(artist: ArtistCreate, session: Session = Depends(get_session)):
     db_artist = Artist(**artist.dict())
@@ -278,10 +273,8 @@ def read_artist(artist_id: int, session: Session = Depends(get_session)):
         raise HTTPException(status_code=404, detail="Artista não encontrado")
     return artist
 
-# Rotas para Músicas
 @app.post("/musics/", response_model=MusicResponse)
 def create_music(music: MusicCreate, session: Session = Depends(get_session)):
-    # Verifica se artista existe
     artist = session.get(Artist, music.artist_id)
     if not artist:
         raise HTTPException(status_code=404, detail="Artista não encontrado")
@@ -309,14 +302,12 @@ def update_music(music_id: int, music_update: MusicCreate, session: Session = De
     db_music = session.get(Music, music_id)
     if not db_music:
         raise HTTPException(status_code=404, detail="Música não encontrada")
-    
-    # Verifica se novo artista existe
+
     if music_update.artist_id != db_music.artist_id:
         artist = session.get(Artist, music_update.artist_id)
         if not artist:
             raise HTTPException(status_code=404, detail="Artista não encontrado")
-    
-    # Atualiza os campos
+
     for key, value in music_update.dict().items():
         setattr(db_music, key, value)
     
@@ -335,7 +326,6 @@ def delete_music(music_id: int, session: Session = Depends(get_session)):
     session.commit()
     return {"message": "Música deletada com sucesso"}
 
-# Rotas para Playlists (agora com autenticação)
 @app.post("/playlists/", response_model=PlaylistResponse)
 def create_playlist(
     playlist: PlaylistCreate,
@@ -371,7 +361,6 @@ def add_music_to_playlist(
     if not playlist:
         raise HTTPException(status_code=404, detail="Playlist não encontrada")
     
-    # Verifica se o usuário é o dono da playlist
     if playlist.owner_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not enough permissions")
     
@@ -379,7 +368,6 @@ def add_music_to_playlist(
     if not music:
         raise HTTPException(status_code=404, detail="Música não encontrada")
     
-    # Verifica se música já está na playlist
     existing_link = session.exec(
         select(PlaylistMusic)
         .where(PlaylistMusic.playlist_id == playlist_id)
@@ -389,7 +377,6 @@ def add_music_to_playlist(
     if existing_link:
         raise HTTPException(status_code=400, detail="Música já está na playlist")
     
-    # Adiciona música à playlist
     playlist_music = PlaylistMusic(playlist_id=playlist_id, music_id=music_id)
     session.add(playlist_music)
     session.commit()
@@ -402,7 +389,6 @@ def get_playlist_musics(playlist_id: int, session: Session = Depends(get_session
     if not playlist:
         raise HTTPException(status_code=404, detail="Playlist não encontrada")
     
-    # Carrega as músicas da playlist
     statement = (
         select(Music)
         .join(PlaylistMusic)
@@ -412,7 +398,7 @@ def get_playlist_musics(playlist_id: int, session: Session = Depends(get_session
     
     return musics
 
-# Rota inicial
+# Início
 @app.get("/")
 def read_root():
     return {"message": "Bem-vindo à API de Streaming Musical com MySQL e Users!"}
