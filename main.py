@@ -38,10 +38,6 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 app = FastAPI(title="UNDERSOUND API (PFC)", description="Plataforma de Streaming para Bandas Independentes")
 
 
-# ==============================================================================
-# 2. MODELOS DE DADOS (SQLModel) - Com RNs
-# ==============================================================================
-
 # RN2: Tabela de Associação M:N para Seguir Artista
 class UserFollowArtist(SQLModel, table=True):
     user_id: int = Field(foreign_key="user.id", primary_key=True)
@@ -106,10 +102,6 @@ class PlaylistMusic(SQLModel, table=True):
     playlist: Playlist = Relationship(back_populates="musics_links")
     music: Music = Relationship(back_populates="playlists_links")
 
-
-# ==============================================================================
-# 3. SCHEMAS PYDANTIC (Validação e Resposta)
-# ==============================================================================
 
 class UserCreate(BaseModel):
     username: str
@@ -177,10 +169,6 @@ class PlaylistResponse(BaseModel):
     is_public: bool
     owner_id: int 
 
-
-# ==============================================================================
-# 4. FUNÇÕES DE UTILIDADE E SEGURANÇA
-# ==============================================================================
 
 def get_user_by_username(session: Session, username: str) -> Optional[User]:
     return session.exec(select(User).where(User.username == username)).first()
@@ -582,10 +570,6 @@ def get_playlist_musics(playlist_id: int, session: Session = Depends(get_session
     
     return musics
 
-
-# ==============================================================================
-# 9. INICIALIZAÇÃO E MONTAGEM DO FRONTEND
-# ==============================================================================
 
 FRONTEND_DIST_DIR = "frontend/dist"
 
