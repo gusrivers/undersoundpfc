@@ -6,3 +6,6 @@ Traceback (most recent call last):
 AttributeError: module 'bcrypt' has no attribute '__about__'
 2026-09-26 13:24:31,024 [INFO] AUDITORIA: NOVO USUÁRIO CADASTRADO: ID=1, Email=gutiiz_tavuu@hotmail.com, Tipo=ouvinte
 2026-09-26 13:24:38,292 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=gutiiz_tavuu@hotmail.com
+2026-09-26 13:26:24,923 [INFO] AUDITORIA: HTTP Request: GET https://musicbrainz.org/ws/2/artist/?query=artist:abobora%20verde&fmt=json "HTTP/1.1 200 OK"
+2026-09-26 13:26:34,863 [INFO] AUDITORIA: HTTP Request: GET https://musicbrainz.org/ws/2/artist/?query=artist:Ab%C3%B3bora%20Verde&fmt=json "HTTP/1.1 200 OK"
+2026-09-26 13:26:51,726 [INFO] AUDITORIA: HTTP Request: GET https://musicbrainz.org/ws/2/artist/?query=artist:Sepultura&fmt=json "HTTP/1.1 200 OK"
