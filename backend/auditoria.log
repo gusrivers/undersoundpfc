@@ -1,0 +1,8 @@
+2026-09-26 13:22:45,406 [WARNING] AUDITORIA: (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\ext_gsilva\AppData\Local\Programs\Python\Python313\Lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2026-09-26 13:24:31,024 [INFO] AUDITORIA: NOVO USUÁRIO CADASTRADO: ID=1, Email=gutiiz_tavuu@hotmail.com, Tipo=ouvinte
+2026-09-26 13:24:38,292 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=gutiiz_tavuu@hotmail.com
