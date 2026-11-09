@@ -9,3 +9,12 @@ AttributeError: module 'bcrypt' has no attribute '__about__'
 2026-09-26 13:26:24,923 [INFO] AUDITORIA: HTTP Request: GET https://musicbrainz.org/ws/2/artist/?query=artist:abobora%20verde&fmt=json "HTTP/1.1 200 OK"
 2026-09-26 13:26:34,863 [INFO] AUDITORIA: HTTP Request: GET https://musicbrainz.org/ws/2/artist/?query=artist:Ab%C3%B3bora%20Verde&fmt=json "HTTP/1.1 200 OK"
 2026-09-26 13:26:51,726 [INFO] AUDITORIA: HTTP Request: GET https://musicbrainz.org/ws/2/artist/?query=artist:Sepultura&fmt=json "HTTP/1.1 200 OK"
+2026-09-28 16:53:40,692 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=gutiiz_tavuu@hotmail.com
+2026-09-28 16:55:01,303 [INFO] AUDITORIA: ÁLBUM CRIADO: ID=1, Título='Rules' pelo Usuário ID=1
+2026-09-28 16:55:01,349 [INFO] AUDITORIA: MÚSICA ADICIONADA: ID=1, Título='Intro' ao Álbum ID=1
+2026-09-28 16:57:06,497 [INFO] AUDITORIA: NOVO USUÁRIO CADASTRADO: ID=2, Email=gustavo.silva@exemplo.com, Tipo=ouvinte
+2026-09-28 16:57:22,051 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=gustavo.silva@exemplo.com
+2026-09-28 16:57:59,048 [ERROR] AUDITORIA: Erro ao consultar API Externa do MusicBrainz: 
+2026-09-28 16:58:03,988 [INFO] AUDITORIA: HTTP Request: GET https://musicbrainz.org/ws/2/artist/?query=artist:Sepultura&fmt=json "HTTP/1.1 200 OK"
+2026-09-28 16:59:03,832 [INFO] AUDITORIA: ÁLBUM CRIADO: ID=2, Título='Teste' pelo Usuário ID=2
+2026-09-28 16:59:03,880 [INFO] AUDITORIA: MÚSICA ADICIONADA: ID=2, Título='Teste' ao Álbum ID=2
