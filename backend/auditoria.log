@@ -88,3 +88,22 @@ AttributeError: module 'bcrypt' has no attribute '__about__'
 2026-11-16 16:19:39,129 [INFO] AUDITORIA: HTTP Request: GET https://musicbrainz.org/ws/2/artist/?query=artist:Sepultura&fmt=json "HTTP/1.1 503 Service Temporarily Unavailable"
 2026-11-16 16:19:39,132 [WARNING] AUDITORIA: MusicBrainz retornou status 503. Utilizando dados simulados de contingência.
 2026-11-16 16:19:40,265 [INFO] AUDITORIA: HTTP Request: GET https://musicbrainz.org/ws/2/artist/?query=artist:Sepultura&fmt=json "HTTP/1.1 200 OK"
+2026-11-16 16:52:17,684 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=gutiiz_tavuu@hotmail.com
+2026-11-16 16:53:00,321 [INFO] AUDITORIA: NOVO USUÁRIO CADASTRADO: ID=8, Email=bandax@gmail.com, Tipo=artista
+2026-11-16 16:53:05,780 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=bandax@gmail.com
+2026-11-16 16:56:02,029 [INFO] AUDITORIA: EXCLUSÃO DE CONTA (LGPD): Usuário ID=8, Email=bandax@gmail.com excluiu seus dados com sucesso.
+2026-11-16 16:56:21,857 [INFO] AUDITORIA: NOVO USUÁRIO CADASTRADO: ID=9, Email=ouvinte@teste.com, Tipo=ouvinte
+2026-11-16 16:56:27,448 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=ouvinte@teste.com
+2026-11-16 16:56:49,279 [INFO] AUDITORIA: HTTP Request: GET https://musicbrainz.org/ws/2/artist/?query=artist:Sepultura&fmt=json "HTTP/1.1 200 OK"
+2026-11-16 16:56:57,977 [INFO] AUDITORIA: HTTP Request: GET https://musicbrainz.org/ws/2/artist/?query=artist:Nirvana&fmt=json "HTTP/1.1 200 OK"
+2026-11-16 16:57:09,652 [INFO] AUDITORIA: HTTP Request: GET https://musicbrainz.org/ws/2/artist/?query=artist:Pink%20Floyd&fmt=json "HTTP/1.1 503 Service Temporarily Unavailable"
+2026-11-16 16:57:09,655 [WARNING] AUDITORIA: MusicBrainz retornou status 503. Utilizando dados simulados de contingência.
+2026-11-16 16:57:30,251 [INFO] AUDITORIA: EXCLUSÃO DE CONTA (LGPD): Usuário ID=9, Email=ouvinte@teste.com excluiu seus dados com sucesso.
+2026-11-16 16:57:38,180 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=gutiiz_tavuu@hotmail.com
+2026-11-16 16:58:17,325 [INFO] AUDITORIA: ÁLBUM ATUALIZADO: ID=4, Título='SYOTOS'
+2026-11-16 16:58:29,098 [INFO] AUDITORIA: ÁLBUM ATUALIZADO: ID=4, Título='SYOTOS'
+2026-11-16 16:59:02,987 [INFO] AUDITORIA: ÁLBUM CRIADO: ID=15, Título='Teste entrega' pelo Artista ID=3
+2026-11-16 16:59:43,040 [INFO] AUDITORIA: UPLOAD DE ÁUDIO REALIZADO: 'Golden Anchor.mpeg' para o Álbum ID=15
+2026-11-16 17:00:30,758 [INFO] AUDITORIA: UPLOAD DE ÁUDIO REALIZADO: 'UNDEAD GIANT 4.0.wav' para o Álbum ID=4
+2026-11-16 17:00:42,498 [INFO] AUDITORIA: ÁLBUM ATUALIZADO: ID=4, Título='SYOTOS'
+2026-11-16 19:06:12,899 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=gutiiz_tavuu@hotmail.com

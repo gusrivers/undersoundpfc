@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
-import { Disc, PlusCircle, Trash2, ArrowLeft, Music, User, ShieldCheck } from 'lucide-react';
+import { Disc, PlusCircle, ArrowLeft, Music, User, ShieldCheck, Filter, RotateCcw, Calendar, BarChart3 } from 'lucide-react';
 
 interface Musica {
   id: number;
@@ -24,7 +24,12 @@ export const Dashboard: React.FC = () => {
   const [usuario, setUsuario] = useState<any>(null);
   const [meusAlbuns, setMeusAlbuns] = useState<Album[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  
+
+  // Estados dos filtros dinâmicos solicitados para o Dashboard
+  const [filtroGenero, setFiltroGenero] = useState<string>('TODOS');
+  const [filtroAno, setFiltroAno] = useState<string>('TODOS');
+  const [ordenacao, setOrdenacao] = useState<string>('RECENTES');
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -49,7 +54,7 @@ export const Dashboard: React.FC = () => {
           );
           setMeusAlbuns(albunsDoArtista);
         } else {
-          // Se for ouvinte, pode ver todos ou uma mensagem restrita
+          // Se for ouvinte, exibe o catálogo geral
           setMeusAlbuns(resAlbuns.data);
         }
       })
@@ -59,10 +64,61 @@ export const Dashboard: React.FC = () => {
       .finally(() => setLoading(false));
   }, [navigate]);
 
+  // Extrai estilos musicais e anos únicos disponíveis no acervo
+  const generosDisponiveis = useMemo(() => {
+    return Array.from(new Set(meusAlbuns.map((a) => a.genero).filter(Boolean))).sort();
+  }, [meusAlbuns]);
+
+  const anosDisponiveis = useMemo(() => {
+    return Array.from(new Set(meusAlbuns.map((a) => String(a.ano)).filter(Boolean))).sort((a, b) => Number(b) - Number(a));
+  }, [meusAlbuns]);
+
+  // Aplica filtros e ordenação em tempo real
+  const albunsFiltrados = useMemo(() => {
+    return meusAlbuns
+      .filter((album) => {
+        const matchGenero = filtroGenero === 'TODOS' || album.genero === filtroGenero;
+        const matchAno = filtroAno === 'TODOS' || String(album.ano) === filtroAno;
+        return matchGenero && matchAno;
+      })
+      .sort((a, b) => {
+        if (ordenacao === 'RECENTES') return b.id - a.id;
+        if (ordenacao === 'ANTIGOS') return a.id - b.id;
+        if (ordenacao === 'MAIS_FAIXAS') return (b.musicas?.length || 0) - (a.musicas?.length || 0);
+        if (ordenacao === 'DURACAO') {
+          const durA = (a.musicas || []).reduce((acc, m) => acc + (m.duracao_segundos || 0), 0);
+          const durB = (b.musicas || []).reduce((acc, m) => acc + (m.duracao_segundos || 0), 0);
+          return durB - durA;
+        }
+        return 0;
+      });
+  }, [meusAlbuns, filtroGenero, filtroAno, ordenacao]);
+
+  // Recálculo dinâmico dos indicadores (KPIs) conforme o filtro ativo
+  const totalAlbunsFiltrados = albunsFiltrados.length;
+  const totalFaixasFiltradas = useMemo(() => {
+    return albunsFiltrados.reduce((acc, album) => acc + (album.musicas ? album.musicas.length : 0), 0);
+  }, [albunsFiltrados]);
+
+  const tempoTotalMinutos = useMemo(() => {
+    const segundos = albunsFiltrados.reduce((acc, album) => {
+      return acc + (album.musicas || []).reduce((sum, m) => sum + (m.duracao_segundos || 0), 0);
+    }, 0);
+    return Math.round(segundos / 60);
+  }, [albunsFiltrados]);
+
+  const temFiltroAtivo = filtroGenero !== 'TODOS' || filtroAno !== 'TODOS' || ordenacao !== 'RECENTES';
+
+  const limparFiltros = () => {
+    setFiltroGenero('TODOS');
+    setFiltroAno('TODOS');
+    setOrdenacao('RECENTES');
+  };
+
   if (loading) {
     return (
       <div style={{ padding: '40px', color: '#a1a1aa', backgroundColor: '#09090b', minHeight: '100vh', textAlign: 'center' }}>
-        Carregando painel do artista...
+        Carregando painel analítico do artista...
       </div>
     );
   }
@@ -71,7 +127,7 @@ export const Dashboard: React.FC = () => {
     <div style={{ padding: '32px', color: '#fff', backgroundColor: '#09090b', minHeight: 'calc(100vh - 60px)', paddingBottom: '90px' }}>
       
       {/* Barra Superior do Dashboard */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', flexWrap: 'wrap', gap: '16px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <button 
             onClick={() => navigate('/')}
@@ -84,9 +140,9 @@ export const Dashboard: React.FC = () => {
             <ArrowLeft size={16} /> Voltar ao Catálogo
           </button>
           <div>
-            <h1 style={{ fontSize: '1.8rem', margin: 0 }}>Painel do Artista</h1>
+            <h1 style={{ fontSize: '1.8rem', margin: 0 }}>Painel Analítico do Artista</h1>
             <p style={{ color: '#a1a1aa', fontSize: '0.85rem', margin: '4px 0 0 0' }}>
-              Gerenciamento exclusivo de acervo e perfil independente
+              Indicadores dinâmicos, filtragem de acervo e métricas de publicação
             </p>
           </div>
         </div>
@@ -104,59 +160,195 @@ export const Dashboard: React.FC = () => {
         </button>
       </div>
 
-      {/* Cards de Resumo / Estatísticas */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '32px' }}>
+      {/* Barra de Filtros Dinâmicos do Dashboard */}
+      <div style={{ 
+        backgroundColor: '#18181b', 
+        border: '1px solid #27272a', 
+        padding: '16px 20px', 
+        borderRadius: '8px', 
+        marginBottom: '24px',
+        display: 'flex',
+        flexWrap: 'wrap',
+        alignItems: 'center',
+        gap: '16px'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#ef4444', fontWeight: 'bold', fontSize: '0.9rem' }}>
+          <Filter size={18} /> Filtros Analíticos:
+        </div>
+
+        {/* Filtro por Estilo Musical */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: '180px' }}>
+          <label style={{ fontSize: '0.75rem', color: '#a1a1aa' }}>Estilo Musical</label>
+          <select
+            value={filtroGenero}
+            onChange={(e) => setFiltroGenero(e.target.value)}
+            style={{
+              backgroundColor: '#09090b',
+              color: '#fff',
+              border: '1px solid #3f3f46',
+              borderRadius: '6px',
+              padding: '8px 12px',
+              fontSize: '0.85rem',
+              cursor: 'pointer'
+            }}
+          >
+            <option value="TODOS">Todos os Estilos</option>
+            {generosDisponiveis.map((genero) => (
+              <option key={genero} value={genero}>{genero}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Filtro por Período / Ano */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: '160px' }}>
+          <label style={{ fontSize: '0.75rem', color: '#a1a1aa' }}>Ano de Lançamento</label>
+          <select
+            value={filtroAno}
+            onChange={(e) => setFiltroAno(e.target.value)}
+            style={{
+              backgroundColor: '#09090b',
+              color: '#fff',
+              border: '1px solid #3f3f46',
+              borderRadius: '6px',
+              padding: '8px 12px',
+              fontSize: '0.85rem',
+              cursor: 'pointer'
+            }}
+          >
+            <option value="TODOS">Todos os Períodos</option>
+            {anosDisponiveis.map((ano) => (
+              <option key={ano} value={ano}>{ano}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Ordenação por Inclusão / Volume */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: '210px' }}>
+          <label style={{ fontSize: '0.75rem', color: '#a1a1aa' }}>Ordenar Acervo Por</label>
+          <select
+            value={ordenacao}
+            onChange={(e) => setOrdenacao(e.target.value)}
+            style={{
+              backgroundColor: '#09090b',
+              color: '#fff',
+              border: '1px solid #3f3f46',
+              borderRadius: '6px',
+              padding: '8px 12px',
+              fontSize: '0.85rem',
+              cursor: 'pointer'
+            }}
+          >
+            <option value="RECENTES">Data de Inclusão (Mais Recentes)</option>
+            <option value="ANTIGOS">Data de Inclusão (Mais Antigos)</option>
+            <option value="MAIS_FAIXAS">Maior Volume de Faixas</option>
+            <option value="DURACAO">Maior Duração Total</option>
+          </select>
+        </div>
+
+        {/* Botão Limpar Filtros */}
+        {temFiltroAtivo && (
+          <button
+            onClick={limparFiltros}
+            style={{
+              marginTop: '18px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              backgroundColor: '#27272a',
+              color: '#e4e4e7',
+              border: '1px solid #3f3f46',
+              padding: '8px 12px',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '0.8rem'
+            }}
+          >
+            <RotateCcw size={14} /> Limpar Filtros
+          </button>
+        )}
+      </div>
+
+      {/* Cards de Resumo / Estatísticas (Atualizados Dinamicamente pelos Filtros) */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '32px' }}>
         <div style={{ backgroundColor: '#18181b', border: '1px solid #27272a', padding: '20px', borderRadius: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#a1a1aa', fontSize: '0.85rem', marginBottom: '8px' }}>
             <User size={16} color="#ef4444" /> Nome da Conta
           </div>
-          <h3 style={{ margin: 0, fontSize: '1.2rem' }}>{usuario?.nome}</h3>
+          <h3 style={{ margin: 0, fontSize: '1.15rem' }}>{usuario?.nome}</h3>
         </div>
 
         <div style={{ backgroundColor: '#18181b', border: '1px solid #27272a', padding: '20px', borderRadius: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#a1a1aa', fontSize: '0.85rem', marginBottom: '8px' }}>
             <ShieldCheck size={16} color="#ef4444" /> Tipo de Perfil
           </div>
-          <h3 style={{ margin: 0, fontSize: '1.2rem', textTransform: 'uppercase', color: '#ef4444' }}>
+          <h3 style={{ margin: 0, fontSize: '1.15rem', textTransform: 'uppercase', color: '#ef4444' }}>
             {usuario?.tipo_usuario}
           </h3>
         </div>
 
         <div style={{ backgroundColor: '#18181b', border: '1px solid #27272a', padding: '20px', borderRadius: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#a1a1aa', fontSize: '0.85rem', marginBottom: '8px' }}>
-            <Disc size={16} color="#ef4444" /> Álbuns Publicados
+            <Disc size={16} color="#ef4444" /> Álbuns Filtrados
           </div>
-          <h3 style={{ margin: 0, fontSize: '1.2rem' }}>{meusAlbuns.length}</h3>
+          <h3 style={{ margin: 0, fontSize: '1.3rem' }}>
+            {totalAlbunsFiltrados} <span style={{ fontSize: '0.8rem', color: '#71717a', fontWeight: 'normal' }}>/ {meusAlbuns.length} total</span>
+          </h3>
         </div>
 
         <div style={{ backgroundColor: '#18181b', border: '1px solid #27272a', padding: '20px', borderRadius: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#a1a1aa', fontSize: '0.85rem', marginBottom: '8px' }}>
-            <Music size={16} color="#ef4444" /> Total de Faixas
+            <Music size={16} color="#ef4444" /> Faixas no Filtro
           </div>
-          <h3 style={{ margin: 0, fontSize: '1.2rem' }}>
-            {meusAlbuns.reduce((acc, album) => acc + (album.musicas ? album.musicas.length : 0), 0)}
-          </h3>
+          <h3 style={{ margin: 0, fontSize: '1.3rem' }}>{totalFaixasFiltradas}</h3>
+        </div>
+
+        <div style={{ backgroundColor: '#18181b', border: '1px solid #27272a', padding: '20px', borderRadius: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#a1a1aa', fontSize: '0.85rem', marginBottom: '8px' }}>
+            <BarChart3 size={16} color="#ef4444" /> Tempo de Acervo
+          </div>
+          <h3 style={{ margin: 0, fontSize: '1.3rem' }}>{tempoTotalMinutos} min</h3>
         </div>
       </div>
 
-      {/* Seção de Gerenciamento Rápido dos Álbuns do Artista */}
-      <h2 style={{ fontSize: '1.3rem', marginBottom: '16px', borderBottom: '1px solid #27272a', paddingBottom: '8px' }}>
-        Seus Álbuns Cadastrados
-      </h2>
+      {/* Seção de Gerenciamento Rápido dos Álbuns Filtrados */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #27272a', paddingBottom: '8px' }}>
+        <h2 style={{ fontSize: '1.3rem', margin: 0 }}>
+          Seus Álbuns Cadastrados ({totalAlbunsFiltrados})
+        </h2>
+        {temFiltroAtivo && (
+          <span style={{ fontSize: '0.8rem', color: '#ef4444' }}>
+            Exibindo resultados filtrados
+          </span>
+        )}
+      </div>
 
-      {meusAlbuns.length === 0 ? (
+      {albunsFiltrados.length === 0 ? (
         <div style={{ backgroundColor: '#18181b', border: '1px solid #27272a', padding: '32px', borderRadius: '8px', textAlign: 'center', color: '#a1a1aa' }}>
-          <p>Você ainda não publicou nenhum álbum.</p>
-          <button 
-            onClick={() => navigate('/')} 
-            style={{ marginTop: '12px', background: '#ef4444', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
-          >
-            Publicar Primeiro Álbum
-          </button>
+          {meusAlbuns.length === 0 ? (
+            <>
+              <p>Você ainda não publicou nenhum álbum.</p>
+              <button 
+                onClick={() => navigate('/')} 
+                style={{ marginTop: '12px', background: '#ef4444', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+              >
+                Publicar Primeiro Álbum
+              </button>
+            </>
+          ) : (
+            <>
+              <p>Nenhum álbum encontrado com os filtros selecionados.</p>
+              <button 
+                onClick={limparFiltros} 
+                style={{ marginTop: '12px', background: '#27272a', color: '#fff', border: '1px solid #3f3f46', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+              >
+                Restaurar Todos os Álbuns
+              </button>
+            </>
+          )}
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
-          {meusAlbuns.map((album) => (
+          {albunsFiltrados.map((album) => (
             <div key={album.id} style={{ backgroundColor: '#18181b', borderRadius: '8px', border: '1px solid #27272a', padding: '16px' }}>
               <div style={{ width: '100%', height: '160px', backgroundColor: '#27272a', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px', overflow: 'hidden' }}>
                 {album.capa_url ? (

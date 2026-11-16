@@ -52,7 +52,7 @@ def login(login_data: schemas.LoginData, db: Session = Depends(get_db)):
 def obter_usuario_atual(usuario_atual: models.Usuario = Depends(security.obter_usuario_atual)):
     return {
         "id": usuario_atual.id,
-        "nome": usuario_atual.nome, # <-- Certifique-se de retornar o nome
+        "nome": usuario_atual.nome,
         "tipo_usuario": usuario_atual.tipo_usuario
     }
 
