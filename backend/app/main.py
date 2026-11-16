@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
 from app.routers import auth, musicas
 from app.logger import logger
+import os
+from fastapi.staticfiles import StaticFiles
 
 # Criação automática das tabelas no Banco de Dados
 Base.metadata.create_all(bind=engine)
@@ -12,6 +14,9 @@ app = FastAPI(
     description="Backend para plataforma de streaming e gestão musical underground - Entrega 2",
     version="1.0.0"
 )
+
+os.makedirs("uploads", exist_ok=True)
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 # Configuração de CORS (Autorizando requisições do Vite em Localhost e Vercel)
 app.add_middleware(

@@ -48,9 +48,14 @@ class AlbumCreate(BaseModel):
     genero: str
     capa_url: Optional[str] = None
 
-class AlbumResponse(AlbumCreate):
+class AlbumResponse(BaseModel):
     id: int
+    titulo: str
+    ano: int
+    genero: str
+    capa_url: Optional[str] = None
     artista_id: int
+    artista_nome: Optional[str] = None
     musicas: List[MusicaResponse] = []
 
     class Config:

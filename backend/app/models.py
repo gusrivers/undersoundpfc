@@ -29,15 +29,16 @@ class Album(Base):
     artista_id = Column(Integer, ForeignKey("usuarios.id"))
 
     artista = relationship("Usuario", back_populates="albuns")
-    musicas = relationship("Musica", back_populates="album")
+    musicas = relationship("Musica", back_populates="album", cascade="all, delete-orphan", order_by="Musica.ordem")
 
 class Musica(Base):
     __tablename__ = "musicas"
-
+    
     id = Column(Integer, primary_key=True, index=True)
-    titulo = Column(String(150), nullable=False)
-    duracao_segundos = Column(Integer, nullable=False, default=180)
-    arquivo_url = Column(String(255), nullable=False)
+    titulo = Column(String, nullable=False)
+    duracao_segundos = Column(Integer, nullable=False)
+    arquivo_url = Column(String, nullable=False)
+    ordem = Column(Integer, default=1)
     album_id = Column(Integer, ForeignKey("albuns.id"))
-
+    
     album = relationship("Album", back_populates="musicas")

@@ -48,6 +48,37 @@ def login(login_data: schemas.LoginData, db: Session = Depends(get_db)):
     logger.info(f"LOGIN BEM-SUCEDIDO: Email={usuario.email}")
     return {"access_token": access_token, "token_type": "bearer"}
 
-@router.get("/me", response_model=schemas.UsuarioResponse)
-def obter_perfil_logado(usuario_atual: models.Usuario = Depends(security.obter_usuario_atual)):
-    return usuario_atual
+@router.get("/me")
+def obter_usuario_atual(usuario_atual: models.Usuario = Depends(security.obter_usuario_atual)):
+    return {
+        "id": usuario_atual.id,
+        "nome": usuario_atual.nome, # <-- Certifique-se de retornar o nome
+        "tipo_usuario": usuario_atual.tipo_usuario
+    }
+
+@router.delete("/conta/excluir", status_code=status.HTTP_200_OK)
+def excluir_conta(
+    db: Session = Depends(get_db),
+    usuario_atual: models.Usuario = Depends(security.obter_usuario_atual)
+):
+    """
+    Atende ao requisito RF06 (Direitos do Titular de Dados / LGPD):
+    Permite que o usuário logado exclua permanentemente sua conta e dados do sistema.
+    """
+    try:
+        user_id = usuario_atual.id
+        user_email = usuario_atual.email
+        
+        db.delete(usuario_atual)
+        db.commit()
+        
+        logger.info(f"EXCLUSÃO DE CONTA (LGPD): Usuário ID={user_id}, Email={user_email} excluiu seus dados com sucesso.")
+        return {"mensagem": "Conta e dados pessoais excluídos com sucesso em conformidade com a LGPD."}
+        
+    except Exception as e:
+        db.rollback()
+        logger.error(f"ERRO NA EXCLUSÃO DE CONTA: Usuário ID={usuario_atual.id} - Detalhes: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Não foi possível concluir a exclusão da conta no momento."
+        )
