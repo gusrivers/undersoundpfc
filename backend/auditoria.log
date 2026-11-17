@@ -1,0 +1,109 @@
+2026-09-26 13:22:45,406 [WARNING] AUDITORIA: (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\ext_gsilva\AppData\Local\Programs\Python\Python313\Lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2026-09-26 13:24:31,024 [INFO] AUDITORIA: NOVO USUÁRIO CADASTRADO: ID=1, Email=gutiiz_tavuu@hotmail.com, Tipo=ouvinte
+2026-09-26 13:24:38,292 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=gutiiz_tavuu@hotmail.com
+2026-09-26 13:26:24,923 [INFO] AUDITORIA: HTTP Request: GET https://musicbrainz.org/ws/2/artist/?query=artist:abobora%20verde&fmt=json "HTTP/1.1 200 OK"
+2026-09-26 13:26:34,863 [INFO] AUDITORIA: HTTP Request: GET https://musicbrainz.org/ws/2/artist/?query=artist:Ab%C3%B3bora%20Verde&fmt=json "HTTP/1.1 200 OK"
+2026-09-26 13:26:51,726 [INFO] AUDITORIA: HTTP Request: GET https://musicbrainz.org/ws/2/artist/?query=artist:Sepultura&fmt=json "HTTP/1.1 200 OK"
+2026-09-28 16:53:40,692 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=gutiiz_tavuu@hotmail.com
+2026-09-28 16:55:01,303 [INFO] AUDITORIA: ÁLBUM CRIADO: ID=1, Título='Rules' pelo Usuário ID=1
+2026-09-28 16:55:01,349 [INFO] AUDITORIA: MÚSICA ADICIONADA: ID=1, Título='Intro' ao Álbum ID=1
+2026-09-28 16:57:06,497 [INFO] AUDITORIA: NOVO USUÁRIO CADASTRADO: ID=2, Email=gustavo.silva@exemplo.com, Tipo=ouvinte
+2026-09-28 16:57:22,051 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=gustavo.silva@exemplo.com
+2026-09-28 16:57:59,048 [ERROR] AUDITORIA: Erro ao consultar API Externa do MusicBrainz: 
+2026-09-28 16:58:03,988 [INFO] AUDITORIA: HTTP Request: GET https://musicbrainz.org/ws/2/artist/?query=artist:Sepultura&fmt=json "HTTP/1.1 200 OK"
+2026-09-28 16:59:03,832 [INFO] AUDITORIA: ÁLBUM CRIADO: ID=2, Título='Teste' pelo Usuário ID=2
+2026-09-28 16:59:03,880 [INFO] AUDITORIA: MÚSICA ADICIONADA: ID=2, Título='Teste' ao Álbum ID=2
+2026-11-15 18:41:44,256 [INFO] AUDITORIA: Acesso à rota principal da API.
+2026-11-15 18:45:53,909 [WARNING] AUDITORIA: FALHA DE AUTENTICAÇÃO: Tentativa incorreta de login para o email: gutiiz_tavuu@hotmail.com
+2026-11-15 18:45:57,151 [WARNING] AUDITORIA: FALHA DE AUTENTICAÇÃO: Tentativa incorreta de login para o email: gutiiz_tavuu@hotmail.com
+2026-11-15 18:46:27,712 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=gutiiz_tavuu@hotmail.com
+2026-11-15 18:47:03,579 [INFO] AUDITORIA: EXCLUSÃO DE CONTA (LGPD): Usuário ID=1, Email=gutiiz_tavuu@hotmail.com excluiu seus dados com sucesso.
+2026-11-15 18:47:25,273 [INFO] AUDITORIA: NOVO USUÁRIO CADASTRADO: ID=3, Email=gutiiz_tavuu@hotmail.com, Tipo=artista
+2026-11-15 18:47:28,862 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=gutiiz_tavuu@hotmail.com
+2026-11-15 18:48:47,252 [INFO] AUDITORIA: ÁLBUM CRIADO: ID=3, Título='Teste' pelo Artista ID=3
+2026-11-15 18:53:26,384 [INFO] AUDITORIA: UPLOAD DE ÁUDIO REALIZADO: 'UNDEAD GIANT 4.0.wav' para o Álbum ID=3
+2026-11-15 19:42:58,328 [INFO] AUDITORIA: ÁLBUM CRIADO: ID=4, Título='SYOTOS' pelo Artista ID=3
+2026-11-15 19:45:04,710 [INFO] AUDITORIA: UPLOAD DE ÁUDIO REALIZADO: 'UNDEAD GIANT 4.0.wav' para o Álbum ID=4
+2026-11-15 19:46:54,107 [INFO] AUDITORIA: UPLOAD DE ÁUDIO REALIZADO: 'UNDEAD GIANT 4.0.wav' para o Álbum ID=4
+2026-11-15 20:01:02,171 [INFO] AUDITORIA: UPLOAD DE ÁUDIO REALIZADO: 'RED AND POISONED FATED MIX 4.mp3.mpeg' para o Álbum ID=4
+2026-11-15 20:02:41,464 [INFO] AUDITORIA: UPLOAD DE ÁUDIO REALIZADO: 'Golden Anchor.mpeg' para o Álbum ID=4
+2026-11-15 20:02:58,724 [INFO] AUDITORIA: UPLOAD DE ÁUDIO REALIZADO: 'Mermaid spell.mpeg' para o Álbum ID=4
+2026-11-15 20:18:13,005 [INFO] AUDITORIA: ÁLBUM ATUALIZADO: ID=4, Título='SYOTOS'
+2026-11-15 20:21:26,141 [INFO] AUDITORIA: ÁLBUM ATUALIZADO: ID=4, Título='SYOTOS'
+2026-11-15 20:21:32,146 [INFO] AUDITORIA: ÁLBUM ATUALIZADO: ID=4, Título='SYOTOS'
+2026-11-15 20:33:05,763 [INFO] AUDITORIA: NOVO USUÁRIO CADASTRADO: ID=4, Email=teste@ouvinte.com, Tipo=ouvinte
+2026-11-15 20:33:08,866 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=teste@ouvinte.com
+2026-11-15 20:33:50,752 [INFO] AUDITORIA: NOVO USUÁRIO CADASTRADO: ID=5, Email=teste@artista2.com, Tipo=artista
+2026-11-15 20:33:53,079 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=teste@artista2.com
+2026-11-15 20:38:07,517 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=teste@ouvinte.com
+2026-11-15 20:45:59,371 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=gutiiz_tavuu@hotmail.com
+2026-11-15 20:53:16,121 [INFO] AUDITORIA: HTTP Request: GET https://musicbrainz.org/ws/2/artist/?query=artist:Sepultura&fmt=json "HTTP/1.1 503 Service Temporarily Unavailable"
+2026-11-15 20:53:22,031 [INFO] AUDITORIA: HTTP Request: GET https://musicbrainz.org/ws/2/artist/?query=artist:Sepultura&fmt=json "HTTP/1.1 503 Service Temporarily Unavailable"
+2026-11-15 20:54:39,341 [INFO] AUDITORIA: HTTP Request: GET https://musicbrainz.org/ws/2/artist/?query=artist:Sepultura&fmt=json "HTTP/1.1 503 Service Temporarily Unavailable"
+2026-11-15 20:54:39,344 [WARNING] AUDITORIA: MusicBrainz retornou status 503. Utilizando dados simulados de contingência.
+2026-11-15 20:54:52,006 [INFO] AUDITORIA: HTTP Request: GET https://musicbrainz.org/ws/2/artist/?query=artist:Nirvana&fmt=json "HTTP/1.1 200 OK"
+2026-11-15 20:55:17,732 [INFO] AUDITORIA: HTTP Request: GET https://musicbrainz.org/ws/2/artist/?query=artist:Foo%20Fighters&fmt=json "HTTP/1.1 200 OK"
+2026-11-16 14:59:56,505 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=gutiiz_tavuu@hotmail.com
+2026-11-16 15:00:18,602 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=teste@ouvinte.com
+2026-11-16 15:00:22,786 [INFO] AUDITORIA: EXCLUSÃO DE CONTA (LGPD): Usuário ID=4, Email=teste@ouvinte.com excluiu seus dados com sucesso.
+2026-11-16 15:00:47,102 [WARNING] AUDITORIA: FALHA DE AUTENTICAÇÃO: Tentativa incorreta de login para o email: teste@ouvinte.com
+2026-11-16 15:00:56,279 [WARNING] AUDITORIA: FALHA DE AUTENTICAÇÃO: Tentativa incorreta de login para o email: teste@artista.com
+2026-11-16 15:00:59,524 [WARNING] AUDITORIA: FALHA DE AUTENTICAÇÃO: Tentativa incorreta de login para o email: teste@artista.com
+2026-11-16 15:01:03,279 [WARNING] AUDITORIA: FALHA DE AUTENTICAÇÃO: Tentativa incorreta de login para o email: teste@artista.com
+2026-11-16 15:01:42,422 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=teste@artista2.com
+2026-11-16 15:01:54,458 [INFO] AUDITORIA: EXCLUSÃO DE CONTA (LGPD): Usuário ID=5, Email=teste@artista2.com excluiu seus dados com sucesso.
+2026-11-16 15:05:24,229 [INFO] AUDITORIA: NOVO USUÁRIO CADASTRADO: ID=6, Email=teste@imerys.com, Tipo=ouvinte
+2026-11-16 15:05:30,436 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=teste@imerys.com
+2026-11-16 15:05:37,152 [INFO] AUDITORIA: EXCLUSÃO DE CONTA (LGPD): Usuário ID=6, Email=teste@imerys.com excluiu seus dados com sucesso.
+2026-11-16 15:06:51,836 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=gutiiz_tavuu@hotmail.com
+2026-11-16 15:27:32,841 [INFO] AUDITORIA: NOVO USUÁRIO CADASTRADO: ID=7, Email=teste@imerys.com, Tipo=ouvinte
+2026-11-16 15:27:38,316 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=teste@imerys.com
+2026-11-16 15:28:03,301 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=teste@imerys.com
+2026-11-16 15:28:14,966 [INFO] AUDITORIA: EXCLUSÃO DE CONTA (LGPD): Usuário ID=7, Email=teste@imerys.com excluiu seus dados com sucesso.
+2026-11-16 15:33:14,064 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=gutiiz_tavuu@hotmail.com
+2026-11-16 15:38:45,649 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=gutiiz_tavuu@hotmail.com
+2026-11-16 15:42:05,482 [INFO] AUDITORIA: ÁLBUM CRIADO: ID=5, Título='The Dark Side of the Moon' pelo Artista ID=3
+2026-11-16 15:42:48,855 [INFO] AUDITORIA: UPLOAD DE ÁUDIO REALIZADO: 'Pink Floyd - The Dark Side Of The Moon (50th Anniversary) [2023 Remaster] Full Album - Pink Floyd.mp3' para o Álbum ID=5
+2026-11-16 15:48:01,301 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=gutiiz_tavuu@hotmail.com
+2026-11-16 15:50:36,562 [INFO] AUDITORIA: ÁLBUM CRIADO: ID=6, Título='The Wall' pelo Artista ID=3
+2026-11-16 15:52:15,037 [INFO] AUDITORIA: ÁLBUM CRIADO: ID=7, Título='Teste' pelo Artista ID=3
+2026-11-16 15:56:05,318 [INFO] AUDITORIA: ÁLBUM CRIADO: ID=8, Título='tes' pelo Artista ID=3
+2026-11-16 15:56:39,348 [INFO] AUDITORIA: ÁLBUM CRIADO: ID=9, Título='tes' pelo Artista ID=3
+2026-11-16 16:01:23,364 [INFO] AUDITORIA: ÁLBUM CRIADO: ID=10, Título='teste' pelo Artista ID=3
+2026-11-16 16:01:34,461 [INFO] AUDITORIA: ÁLBUM CRIADO: ID=11, Título='teste' pelo Artista ID=3
+2026-11-16 16:03:32,134 [INFO] AUDITORIA: UPLOAD DE ÁUDIO REALIZADO: 'Pink Floyd - The Dark Side Of The Moon (50th Anniversary) [2023 Remaster] Full Album - Pink Floyd.mp3' para o Álbum ID=11
+2026-11-16 16:03:46,099 [INFO] AUDITORIA: UPLOAD DE ÁUDIO REALIZADO: 'Golden Anchor.mpeg' para o Álbum ID=11
+2026-11-16 16:04:32,838 [INFO] AUDITORIA: ÁLBUM CRIADO: ID=12, Título='Pink Floyd - The Wall' pelo Artista ID=3
+2026-11-16 16:06:47,419 [INFO] AUDITORIA: ÁLBUM CRIADO: ID=13, Título='Teste' pelo Artista ID=3
+2026-11-16 16:08:38,843 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=gutiiz_tavuu@hotmail.com
+2026-11-16 16:09:18,173 [INFO] AUDITORIA: ÁLBUM ATUALIZADO: ID=13, Título='Teste'
+2026-11-16 16:09:45,749 [INFO] AUDITORIA: ÁLBUM CRIADO: ID=14, Título='teste' pelo Artista ID=3
+2026-11-16 16:09:55,604 [INFO] AUDITORIA: ÁLBUM ATUALIZADO: ID=14, Título='teste'
+2026-11-16 16:12:41,057 [INFO] AUDITORIA: ÁLBUM ATUALIZADO: ID=14, Título='teste'
+2026-11-16 16:19:39,129 [INFO] AUDITORIA: HTTP Request: GET https://musicbrainz.org/ws/2/artist/?query=artist:Sepultura&fmt=json "HTTP/1.1 503 Service Temporarily Unavailable"
+2026-11-16 16:19:39,132 [WARNING] AUDITORIA: MusicBrainz retornou status 503. Utilizando dados simulados de contingência.
+2026-11-16 16:19:40,265 [INFO] AUDITORIA: HTTP Request: GET https://musicbrainz.org/ws/2/artist/?query=artist:Sepultura&fmt=json "HTTP/1.1 200 OK"
+2026-11-16 16:52:17,684 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=gutiiz_tavuu@hotmail.com
+2026-11-16 16:53:00,321 [INFO] AUDITORIA: NOVO USUÁRIO CADASTRADO: ID=8, Email=bandax@gmail.com, Tipo=artista
+2026-11-16 16:53:05,780 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=bandax@gmail.com
+2026-11-16 16:56:02,029 [INFO] AUDITORIA: EXCLUSÃO DE CONTA (LGPD): Usuário ID=8, Email=bandax@gmail.com excluiu seus dados com sucesso.
+2026-11-16 16:56:21,857 [INFO] AUDITORIA: NOVO USUÁRIO CADASTRADO: ID=9, Email=ouvinte@teste.com, Tipo=ouvinte
+2026-11-16 16:56:27,448 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=ouvinte@teste.com
+2026-11-16 16:56:49,279 [INFO] AUDITORIA: HTTP Request: GET https://musicbrainz.org/ws/2/artist/?query=artist:Sepultura&fmt=json "HTTP/1.1 200 OK"
+2026-11-16 16:56:57,977 [INFO] AUDITORIA: HTTP Request: GET https://musicbrainz.org/ws/2/artist/?query=artist:Nirvana&fmt=json "HTTP/1.1 200 OK"
+2026-11-16 16:57:09,652 [INFO] AUDITORIA: HTTP Request: GET https://musicbrainz.org/ws/2/artist/?query=artist:Pink%20Floyd&fmt=json "HTTP/1.1 503 Service Temporarily Unavailable"
+2026-11-16 16:57:09,655 [WARNING] AUDITORIA: MusicBrainz retornou status 503. Utilizando dados simulados de contingência.
+2026-11-16 16:57:30,251 [INFO] AUDITORIA: EXCLUSÃO DE CONTA (LGPD): Usuário ID=9, Email=ouvinte@teste.com excluiu seus dados com sucesso.
+2026-11-16 16:57:38,180 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=gutiiz_tavuu@hotmail.com
+2026-11-16 16:58:17,325 [INFO] AUDITORIA: ÁLBUM ATUALIZADO: ID=4, Título='SYOTOS'
+2026-11-16 16:58:29,098 [INFO] AUDITORIA: ÁLBUM ATUALIZADO: ID=4, Título='SYOTOS'
+2026-11-16 16:59:02,987 [INFO] AUDITORIA: ÁLBUM CRIADO: ID=15, Título='Teste entrega' pelo Artista ID=3
+2026-11-16 16:59:43,040 [INFO] AUDITORIA: UPLOAD DE ÁUDIO REALIZADO: 'Golden Anchor.mpeg' para o Álbum ID=15
+2026-11-16 17:00:30,758 [INFO] AUDITORIA: UPLOAD DE ÁUDIO REALIZADO: 'UNDEAD GIANT 4.0.wav' para o Álbum ID=4
+2026-11-16 17:00:42,498 [INFO] AUDITORIA: ÁLBUM ATUALIZADO: ID=4, Título='SYOTOS'
+2026-11-16 19:06:12,899 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=gutiiz_tavuu@hotmail.com
