@@ -20,6 +20,14 @@ def resolver_database_url() -> str:
         or _clean_env(os.getenv("MYSQL_URL"))
         or _clean_env(os.getenv("MYSQL_PRIVATE_URL"))
     )
+    print(
+        "[DB DEBUG BEFORE RAISE]",
+        "DATABASE_URL=", repr(os.getenv("DATABASE_URL")),
+        "| MYSQL_PRIVATE_URL=", repr(os.getenv("MYSQL_PRIVATE_URL")),
+        "| MYSQLHOST=", repr(os.getenv("MYSQLHOST")),
+        "| settings.DATABASE_URL=", repr(getattr(settings, "DATABASE_URL", None)),
+        flush=True,
+    )
 
     # 2. Se não houver URL completa, tenta montar a partir das variáveis individuais do MySQL
     if not url:
@@ -27,7 +35,7 @@ def resolver_database_url() -> str:
         port = _clean_env(os.getenv("MYSQLPORT")) or _clean_env(getattr(settings, "MYSQLPORT", None)) or "3306"
         user = _clean_env(os.getenv("MYSQLUSER")) or _clean_env(getattr(settings, "MYSQLUSER", None))
         password = _clean_env(os.getenv("MYSQLPASSWORD")) or _clean_env(getattr(settings, "MYSQLPASSWORD", None))
-        database = _clean_env(os.getenv("MYSQLDATABASE")) or _clean_env(getattr(settings, "MYSQLDATABASE", None))#
+        database = _clean_env(os.getenv("MYSQLDATABASE")) or _clean_env(getattr(settings, "MYSQLDATABASE", None))
 
         if host and user and password and database:
             url = f"mysql://{user}:{quote_plus(password)}@{host}:{port}/{database}"
@@ -50,22 +58,7 @@ def resolver_database_url() -> str:
     return url
 
 
-DATABASE_URL = resolver_database_url()
-
-parsed = urlparse(DATABASE_URL)
-if parsed.password:
-    safe_netloc = parsed.netloc.replace(f":{parsed.password}@", ":***@", 1)
-    safe_url = urlunparse(parsed._replace(netloc=safe_netloc))
-else:
-    safe_url = DATABASE_URL
-
-print(
-    "[DB DEBUG]",
-    "DATABASE_URL_set=", bool(_clean_env(os.getenv("DATABASE_URL"))),
-    "| MYSQL_PRIVATE_URL_set=", bool(_clean_env(os.getenv("MYSQL_PRIVATE_URL"))),
-    "| MYSQLHOST=", _clean_env(os.getenv("MYSQLHOST")),
-    "| resolved_url=", safe_url,
-)
+DATABASE_URL = resolver_database_url())
 
 connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
 
