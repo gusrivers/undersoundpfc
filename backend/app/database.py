@@ -13,13 +13,14 @@ def _clean_env(value: object) -> str | None:
 
 
 def resolver_database_url() -> str:
+    # 1. Prioriza variáveis de ambiente injetadas pelo Railway/plataforma
     url = (
         _clean_env(os.getenv("DATABASE_URL"))
         or _clean_env(os.getenv("MYSQL_URL"))
         or _clean_env(os.getenv("MYSQL_PRIVATE_URL"))
-        or _clean_env(getattr(settings, "DATABASE_URL", None))
     )
 
+    # 2. Se não houver URL completa, tenta montar a partir das variáveis individuais do MySQL
     if not url:
         host = _clean_env(os.getenv("MYSQLHOST")) or _clean_env(getattr(settings, "MYSQLHOST", None))
         port = _clean_env(os.getenv("MYSQLPORT")) or _clean_env(getattr(settings, "MYSQLPORT", None)) or "3306"
@@ -29,11 +30,17 @@ def resolver_database_url() -> str:
 
         if host and user and password and database:
             url = f"mysql://{user}:{quote_plus(password)}@{host}:{port}/{database}"
-        else:
-            raise ValueError(
-                "DATABASE_URL não configurada e variáveis do MySQL não encontradas."
-            )
 
+    # 3. Fallback para settings.DATABASE_URL (ex.: sqlite:///./undersound.db ou .env local)
+    if not url:
+        url = _clean_env(getattr(settings, "DATABASE_URL", None))
+
+    if not url:
+        raise ValueError(
+            "DATABASE_URL não configurada e variáveis do MySQL não encontradas."
+        )
+
+    # 4. Ajusta o esquema para usar o driver PyMySQL no SQLAlchemy
     if url.startswith("mysql://"):
         url = url.replace("mysql://", "mysql+pymysql://", 1)
     elif url.startswith("mysql2://"):
