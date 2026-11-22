@@ -27,7 +27,7 @@ def resolver_database_url() -> str:
         port = _clean_env(os.getenv("MYSQLPORT")) or _clean_env(getattr(settings, "MYSQLPORT", None)) or "3306"
         user = _clean_env(os.getenv("MYSQLUSER")) or _clean_env(getattr(settings, "MYSQLUSER", None))
         password = _clean_env(os.getenv("MYSQLPASSWORD")) or _clean_env(getattr(settings, "MYSQLPASSWORD", None))
-        database = _clean_env(os.getenv("MYSQLDATABASE")) or _clean_env(getattr(settings, "MYSQLDATABASE", None))
+        database = _clean_env(os.getenv("MYSQLDATABASE")) or _clean_env(getattr(settings, "MYSQLDATABASE", None))#
 
         if host and user and password and database:
             url = f"mysql://{user}:{quote_plus(password)}@{host}:{port}/{database}"
