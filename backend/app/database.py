@@ -14,10 +14,10 @@ def _clean_env(value: object) -> str | None:
 
 def resolver_database_url() -> str:
     url = (
-        _clean_env(getattr(settings, "DATABASE_URL", None))
-        or _clean_env(os.getenv("DATABASE_URL"))
+        _clean_env(os.getenv("DATABASE_URL"))
         or _clean_env(os.getenv("MYSQL_URL"))
         or _clean_env(os.getenv("MYSQL_PRIVATE_URL"))
+        or _clean_env(getattr(settings, "DATABASE_URL", None))
     )
 
     if not url:
