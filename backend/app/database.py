@@ -58,7 +58,7 @@ def resolver_database_url() -> str:
     return url
 
 
-DATABASE_URL = resolver_database_url())
+DATABASE_URL = resolver_database_url()
 
 connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
 
