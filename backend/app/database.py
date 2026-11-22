@@ -5,25 +5,35 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 from app.config import settings
 
 
+def _clean_env(value: object) -> str | None:
+    if value is None:
+        return None
+    text = str(value).strip()
+    return text if text else None
+
+
 def resolver_database_url() -> str:
     url = (
-        getattr(settings, "DATABASE_URL", None)
-        or os.getenv("DATABASE_URL")
-        or os.getenv("MYSQL_URL")
-        or os.getenv("MYSQL_PRIVATE_URL")
+        _clean_env(getattr(settings, "DATABASE_URL", None))
+        or _clean_env(os.getenv("DATABASE_URL"))
+        or _clean_env(os.getenv("MYSQL_URL"))
+        or _clean_env(os.getenv("MYSQL_PRIVATE_URL"))
     )
 
     if not url:
-        host = os.getenv("MYSQLHOST")
-        port = os.getenv("MYSQLPORT", "3306")
-        user = os.getenv("MYSQLUSER")
-        password = os.getenv("MYSQLPASSWORD")
-        database = os.getenv("MYSQLDATABASE")
+        host = _clean_env(os.getenv("MYSQLHOST")) or _clean_env(getattr(settings, "MYSQLHOST", None))
+        port = _clean_env(os.getenv("MYSQLPORT")) or _clean_env(getattr(settings, "MYSQLPORT", None)) or "3306"
+        user = _clean_env(os.getenv("MYSQLUSER")) or _clean_env(getattr(settings, "MYSQLUSER", None))
+        password = _clean_env(os.getenv("MYSQLPASSWORD")) or _clean_env(getattr(settings, "MYSQLPASSWORD", None))
+        database = _clean_env(os.getenv("MYSQLDATABASE")) or _clean_env(getattr(settings, "MYSQLDATABASE", None))
 
         if host and user and password and database:
             url = f"mysql://{user}:{quote_plus(password)}@{host}:{port}/{database}"
         else:
-            raise ValueError("DATABASE_URL não configurada e variáveis do MySQL não encontradas.")
+            raise ValueError(
+                "DATABASE_URL não configurada e variáveis do MySQL não encontradas."
+            )
+
     if url.startswith("mysql://"):
         url = url.replace("mysql://", "mysql+pymysql://", 1)
     elif url.startswith("mysql2://"):
