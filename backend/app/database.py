@@ -3,6 +3,7 @@ from urllib.parse import quote_plus
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 from app.config import settings
+from urllib.parse import urlparse, urlunparse
 
 
 def _clean_env(value: object) -> str | None:
@@ -50,6 +51,21 @@ def resolver_database_url() -> str:
 
 
 DATABASE_URL = resolver_database_url()
+
+parsed = urlparse(DATABASE_URL)
+if parsed.password:
+    safe_netloc = parsed.netloc.replace(f":{parsed.password}@", ":***@", 1)
+    safe_url = urlunparse(parsed._replace(netloc=safe_netloc))
+else:
+    safe_url = DATABASE_URL
+
+print(
+    "[DB DEBUG]",
+    "DATABASE_URL_set=", bool(_clean_env(os.getenv("DATABASE_URL"))),
+    "| MYSQL_PRIVATE_URL_set=", bool(_clean_env(os.getenv("MYSQL_PRIVATE_URL"))),
+    "| MYSQLHOST=", _clean_env(os.getenv("MYSQLHOST")),
+    "| resolved_url=", safe_url,
+)
 
 connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
 
