@@ -3,7 +3,6 @@ from urllib.parse import quote_plus
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 from app.config import settings
-from urllib.parse import urlparse, urlunparse
 
 
 def _clean_env(value: object) -> str | None:
@@ -14,19 +13,11 @@ def _clean_env(value: object) -> str | None:
 
 
 def resolver_database_url() -> str:
-    # 1. Prioriza variáveis de ambiente injetadas pelo Railway/plataforma
+    # 1. Prioriza variáveis de ambiente injetadas pela plataforma (Render, etc.)
     url = (
         _clean_env(os.getenv("DATABASE_URL"))
         or _clean_env(os.getenv("MYSQL_URL"))
         or _clean_env(os.getenv("MYSQL_PRIVATE_URL"))
-    )
-    print(
-        "[DB DEBUG BEFORE RAISE]",
-        "DATABASE_URL=", repr(os.getenv("DATABASE_URL")),
-        "| MYSQL_PRIVATE_URL=", repr(os.getenv("MYSQL_PRIVATE_URL")),
-        "| MYSQLHOST=", repr(os.getenv("MYSQLHOST")),
-        "| settings.DATABASE_URL=", repr(getattr(settings, "DATABASE_URL", None)),
-        flush=True,
     )
 
     # 2. Se não houver URL completa, tenta montar a partir das variáveis individuais do MySQL
@@ -40,17 +31,19 @@ def resolver_database_url() -> str:
         if host and user and password and database:
             url = f"mysql://{user}:{quote_plus(password)}@{host}:{port}/{database}"
 
-    # 3. Fallback para settings.DATABASE_URL (ex.: sqlite:///./undersound.db ou .env local)
+    # 3. Fallback para settings.DATABASE_URL (ex.: desenvolvimento local)
     if not url:
         url = _clean_env(getattr(settings, "DATABASE_URL", None))
 
     if not url:
         raise ValueError(
-            "DATABASE_URL não configurada e variáveis do MySQL não encontradas."
+            "DATABASE_URL não configurada e variáveis de banco não encontradas."
         )
 
-    # 4. Ajusta o esquema para usar o driver PyMySQL no SQLAlchemy
-    if url.startswith("mysql://"):
+    # 4. Normaliza esquemas de banco para o SQLAlchemy
+    if url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql://", 1)
+    elif url.startswith("mysql://"):
         url = url.replace("mysql://", "mysql+pymysql://", 1)
     elif url.startswith("mysql2://"):
         url = url.replace("mysql2://", "mysql+pymysql://", 1)
