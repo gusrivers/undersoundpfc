@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
-import { Play, Disc, Trash2, PlusCircle, Upload, MoreVertical, Edit3, GripVertical, LogOut, LayoutDashboard, ShieldAlert } from 'lucide-react';
+import { Play, Disc, Trash2, PlusCircle, Upload, MoreVertical, Edit3, GripVertical, LogOut, LayoutDashboard, ShieldAlert, FileText, RefreshCw, X } from 'lucide-react';
 
 const getApiBaseUrl = (): string => {
   const raw = (import.meta.env.VITE_API_URL || 'http://localhost:8000').trim();
@@ -21,6 +21,29 @@ const resolverUrlMidia = (path?: string): string | undefined => {
   }
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
   return `${API_BASE_URL}${normalizedPath}`;
+};
+
+const extrairDuracaoAudio = (file: File, fallbackSegundos = 0): Promise<number> => {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const audio = document.createElement('audio');
+    audio.preload = 'metadata';
+
+    const limparEResolver = (segundos: number) => {
+      URL.revokeObjectURL(url);
+      resolve(Number.isFinite(segundos) && segundos > 0 ? Math.round(segundos) : fallbackSegundos);
+    };
+
+    audio.onloadedmetadata = () => {
+      limparEResolver(audio.duration);
+    };
+
+    audio.onerror = () => {
+      limparEResolver(fallbackSegundos);
+    };
+
+    audio.src = url;
+  });
 };
 
 interface Musica {
@@ -78,6 +101,13 @@ const BotaoHover = ({ children, style, onClick, title, type = "button", variant 
         backgroundColor: hovered ? '#27272a' : '#18181b',
         color: '#fff',
         borderColor: hovered ? '#52525b' : '#3f3f46'
+      };
+    }
+    if (variant === 'admin') {
+      return {
+        backgroundColor: hovered ? '#78350f' : '#451a03',
+        color: '#fcd34d',
+        borderColor: '#92400e'
       };
     }
     return {
@@ -142,7 +172,7 @@ export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
   const [modalMusicaAberto, setModalMusicaAberto] = useState<boolean>(false);
   const [albumSelecionadoId, setAlbumSelecionadoId] = useState<number | null>(null);
   const [tituloMusica, setTituloMusica] = useState<string>('');
-  const [duracaoMusica, setDuracaoMusica] = useState<number>(180);
+  const [duracaoMusica, setDuracaoMusica] = useState<number>(0);
   const [ordemMusica, setOrdemMusica] = useState<number>(1);
   const [arquivoAudio, setArquivoAudio] = useState<File | null>(null);
   const [enviandoMusica, setEnviandoMusica] = useState<boolean>(false);
@@ -168,6 +198,10 @@ export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
   const [tituloItemExcluindo, setTituloItemExcluindo] = useState<string>('');
   const [itemExcluidoSucesso, setItemExcluidoSucesso] = useState<boolean>(false);
   const [mensagemSucessoExclusao, setMensagemSucessoExclusao] = useState<string>('');
+
+  const [modalLogsAberto, setModalLogsAberto] = useState<boolean>(false);
+  const [logsLinhas, setLogsLinhas] = useState<string[]>([]);
+  const [carregandoLogs, setCarregandoLogs] = useState<boolean>(false);
 
   const navigate = useNavigate();
 
@@ -199,6 +233,23 @@ export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
   const handleLogout = () => {
     localStorage.removeItem('undersound_token');
     navigate('/login');
+  };
+
+  const buscarLogsAdmin = async () => {
+  setCarregandoLogs(true);
+    try {
+      const res = await api.get('/admin/logs?linhas=200');
+      setLogsLinhas(res.data.linhas || []);
+    } catch (err: any) {
+      alert(err.response?.data?.detail || 'Erro ao buscar logs de auditoria.');
+    } finally {
+      setCarregandoLogs(false);
+    }
+  };
+
+  const handleAbrirLogs = async () => {
+    setModalLogsAberto(true);
+    await buscarLogsAdmin();
   };
 
   const handleConsultarMusicBrainz = async (e: React.FormEvent) => {
@@ -312,14 +363,29 @@ export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
   };
 
   const abrirModalUploadMusica = (albumId: number) => {
+    const albumAlvo = albuns.find((a) => a.id === albumId);
+    const proximaOrdem = (albumAlvo?.musicas?.length || 0) + 1;
+
     setAlbumSelecionadoId(albumId);
     setTituloMusica('');
-    setOrdemMusica(1);
-    setDuracaoMusica(180);
+    setOrdemMusica(proximaOrdem);
+    setDuracaoMusica(0);
     setArquivoAudio(null);
     setErroEnvioMusica('');
     setMusicaEnviadaSucesso(false);
     setModalMusicaAberto(true);
+  };
+
+  const handleSelecionarAudio = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setArquivoAudio(file);
+
+    if (file) {
+      const duracaoDetectada = await extrairDuracaoAudio(file, 0);
+      setDuracaoMusica(duracaoDetectada);
+    } else {
+      setDuracaoMusica(0);
+    }
   };
 
   const handleUploadMusica = async (e: React.FormEvent) => {
@@ -332,9 +398,12 @@ export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
     setEnviandoMusica(true);
     setErroEnvioMusica('');
 
+    const duracaoFinal =
+      duracaoMusica > 0 ? duracaoMusica : await extrairDuracaoAudio(arquivoAudio, 0);
+
     const formData = new FormData();
     formData.append('titulo', tituloMusica);
-    formData.append('duracao_segundos', String(duracaoMusica));
+    formData.append('duracao_segundos', String(duracaoFinal));
     formData.append('ordem', String(ordemMusica));
     formData.append('file', arquivoAudio);
 
@@ -345,6 +414,7 @@ export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
 
       setEnviandoMusica(false);
       setMusicaEnviadaSucesso(true);
+      setDuracaoMusica(0);
       carregarAlbuns();
     } catch (err: any) {
       setEnviandoMusica(false);
@@ -432,7 +502,7 @@ export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
               UNDERSOUND
             </h1>
             <p style={{ color: '#a1a1aa', fontSize: '0.78rem', margin: '2px 0 0 0' }}>
-              Bem-vindo(a), <strong style={{ color: '#fff' }}>{nomeUsuario || 'Usuário'}</strong> • Perfil: <strong style={{ color: '#ef4444' }}>{tipoUsuario.toUpperCase()}</strong>
+              Bem-vindo(a), <strong style={{ color: '#fff' }}>{nomeUsuario || 'Usuário'}</strong> • Perfil: <strong style={{ color: tipoUsuario === 'admin' ? '#f59e0b' : '#ef4444' }}>{tipoUsuario.toUpperCase()}</strong>
             </p>
           </div>
         </div>
@@ -451,6 +521,21 @@ export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
               <Disc size={15} color="#ef4444" />
               Busca Global
             </BotaoHover>
+          
+          {tipoUsuario === 'admin' && (
+            <BotaoHover
+              onClick={handleAbrirLogs}
+              variant="admin"
+              style={{
+                display: 'flex', alignItems: 'center', gap: '6px',
+                backgroundColor: '#451a03', color: '#fcd34d', border: '1px solid #92400e',
+                padding: '8px 14px', borderRadius: '6px', fontSize: '0.82rem', fontWeight: 'bold'
+              }}
+            >
+              <FileText size={15} />
+              Ver Logs (Admin)
+            </BotaoHover>
+          )}
 
           {tipoUsuario === 'artista' && (
             <>
@@ -508,6 +593,44 @@ export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
           </BotaoHover>
         </div>
       </div>
+
+      {/* Modal de Logs de Auditoria (Admin) */}
+      {modalLogsAberto && tipoUsuario === 'admin' && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0,0,0,0.85)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1200, padding: '16px' }}>
+          <div style={{ backgroundColor: '#18181b', padding: '24px', borderRadius: '8px', border: '1px solid #3f3f46', width: '100%', maxWidth: '820px', maxHeight: '80vh', display: 'flex', flexDirection: 'column', gap: '12px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.7)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ margin: 0, color: '#fff', fontSize: '1.2rem' }}>Logs de Auditoria (Admin)</h3>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <BotaoHover
+                  variant="secondary"
+                  disabled={carregandoLogs}
+                  onClick={buscarLogsAdmin}
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', backgroundColor: '#27272a', color: '#e4e4e7', border: '1px solid #3f3f46', borderRadius: '6px', fontSize: '0.8rem' }}
+                >
+                  <RefreshCw size={14} />
+                  Atualizar
+                </BotaoHover>
+                <button
+                  type="button"
+                  onClick={() => setModalLogsAberto(false)}
+                  style={{ background: 'none', border: 'none', color: '#a1a1aa', cursor: 'pointer', padding: '4px' }}
+                  title="Fechar"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
+
+            <div style={{ backgroundColor: '#09090b', border: '1px solid #27272a', borderRadius: '6px', padding: '12px', overflowY: 'auto', fontFamily: 'monospace', fontSize: '0.8rem', lineHeight: 1.5, whiteSpace: 'pre-wrap', flex: 1, color: '#e4e4e7' }}>
+              {carregandoLogs
+                ? 'Carregando logs...'
+                : logsLinhas.length === 0
+                ? 'Nenhum registro encontrado em auditoria.log.'
+                : logsLinhas.join('\n')}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal de Exclusão Consciente de Conta (LGPD - RF06) */}
       {modalExcluirContaAberto && (
@@ -730,17 +853,14 @@ export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
                   <label style={{ fontSize: '0.85rem', color: '#a1a1aa' }}>Título da Música</label>
                   <input type="text" value={tituloMusica} onChange={(e) => setTituloMusica(e.target.value)} required style={{ width: '100%', padding: '10px', backgroundColor: '#27272a', border: '1px solid #3f3f46', borderRadius: '6px', color: '#fff', marginTop: '4px', outline: 'none' }} />
                 </div>
-                <div style={{ marginBottom: '12px' }}>
-                  <label style={{ fontSize: '0.85rem', color: '#a1a1aa' }}>Número da Faixa (Ordem)</label>
-                  <input type="number" value={ordemMusica} onChange={(e) => setOrdemMusica(Number(e.target.value))} required style={{ width: '100%', padding: '10px', backgroundColor: '#27272a', border: '1px solid #3f3f46', borderRadius: '6px', color: '#fff', marginTop: '4px', outline: 'none' }} />
-                </div>
-                <div style={{ marginBottom: '12px' }}>
-                  <label style={{ fontSize: '0.85rem', color: '#a1a1aa' }}>Duração (segundos)</label>
-                  <input type="number" value={duracaoMusica} onChange={(e) => setDuracaoMusica(Number(e.target.value))} required style={{ width: '100%', padding: '10px', backgroundColor: '#27272a', border: '1px solid #3f3f46', borderRadius: '6px', color: '#fff', marginTop: '4px', outline: 'none' }} />
-                </div>
                 <div style={{ marginBottom: '20px' }}>
                   <label style={{ fontSize: '0.85rem', color: '#a1a1aa' }}>Arquivo de Áudio (.mp3, .wav, .mpeg)</label>
-                  <input type="file" accept="audio/*,video/mpeg,.mpeg,.mpg" onChange={(e) => setArquivoAudio(e.target.files ? e.target.files[0] : null)} required style={{ width: '100%', marginTop: '4px', color: '#fff' }} />
+                  <input type="file" accept="audio/*,video/mpeg,.mpeg,.mpg" onChange={handleSelecionarAudio} required style={{ width: '100%', marginTop: '4px', color: '#fff' }} />
+                  {arquivoAudio && duracaoMusica > 0 && (
+                    <small style={{ display: 'block', marginTop: '6px', color: '#a1a1aa', fontSize: '0.75rem' }}>
+                      Duração detectada: {duracaoMusica}s (faixa #{ordemMusica})
+                    </small>
+                  )}
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
                   <BotaoHover variant="secondary" disabled={enviandoMusica} onClick={() => setModalMusicaAberto(false)} style={{ padding: '8px 16px', backgroundColor: '#27272a', color: '#fff', border: '1px solid #3f3f46', borderRadius: '6px' }}>Cancelar</BotaoHover>
@@ -1000,7 +1120,9 @@ export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
           {albuns.map((album) => {
+            const eAdmin = tipoUsuario === 'admin';
             const eDonoDoAlbum = tipoUsuario === 'artista' && usuarioIdLogado === album.artista_id;
+            const podeGerenciar = eAdmin || eDonoDoAlbum;
             const capaResolvida = resolverUrlMidia(album.capa_url);
 
             return (
@@ -1009,7 +1131,7 @@ export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
                 {/* Cabeçalho do Card */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                   <span style={{ fontSize: '0.75rem', color: '#71717a' }}>ID: #{album.id}</span>
-                  {eDonoDoAlbum && (
+                  {podeGerenciar && (
                     <div style={{ position: 'relative' }}>
                       <button 
                         onClick={() => setMenuAbertoId(menuAbertoId === album.id ? null : album.id)}
@@ -1101,7 +1223,7 @@ export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
                           <Play size={16} />
                         </button>
 
-                        {eDonoDoAlbum && (
+                        {podeGerenciar && (
                           <button 
                             onClick={() => solicitarExclusaoMusica(musica.id, musica.titulo)} 
                             style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}
