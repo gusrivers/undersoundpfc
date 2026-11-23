@@ -117,3 +117,7 @@ AttributeError: module 'bcrypt' has no attribute '__about__'
 2026-11-23 20:06:22,861 [INFO] AUDITORIA: UPLOAD DE ÁUDIO REALIZADO: 'Red & Poisoned Fat.mpeg' para o Álbum ID=16
 2026-11-23 20:06:44,270 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=gutiiz_tavuu@hotmail.com
 2026-11-23 20:09:22,548 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=gustavo@admin.com
+2026-11-23 20:20:37,750 [INFO] AUDITORIA: SOLICITAÇÃO DE REDEFINIÇÃO DE SENHA: Usuário ID=10, Email=gustavo@admin.com
+2026-11-23 20:20:50,157 [INFO] AUDITORIA: SENHA REDEFINIDA COM SUCESSO: Usuário ID=10, Email=gustavo@admin.com
+2026-11-23 20:20:58,703 [WARNING] AUDITORIA: FALHA DE AUTENTICAÇÃO: Tentativa incorreta de login para o email: gustavo@admin.com
+2026-11-23 20:21:01,872 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=gustavo@admin.com

@@ -1,9 +1,11 @@
-import os
+import os, secrets
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models, schemas, security
 from app.logger import logger
+from datetime import datetime, timedelta, timezone
+from pydantic import BaseModel, EmailStr
 
 router = APIRouter(prefix="/api/auth", tags=["Autenticação & LGPD"])
 admin_router = APIRouter(prefix="/api/admin", tags=["Administração & Auditoria"])
@@ -11,6 +13,15 @@ admin_router = APIRouter(prefix="/api/admin", tags=["Administração & Auditoria
 LOG_FILE_PATH = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..", "..", "auditoria.log")
 )
+
+class EsqueciSenhaRequest(BaseModel):
+    email: EmailStr
+
+class RedefinirSenhaRequest(BaseModel):
+    token: str
+    nova_senha: str
+
+TOKENS_RECUPERACAO: dict[str, dict] = {}
 
 
 def exigir_admin(usuario_atual: models.Usuario = Depends(security.obter_usuario_atual)):
@@ -119,3 +130,58 @@ def excluir_conta(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Não foi possível concluir a exclusão da conta no momento."
         )
+
+@router.post("/esqueci-senha", status_code=status.HTTP_200_OK)
+def solicitar_recuperacao_senha(dados: EsqueciSenhaRequest, db: Session = Depends(get_db)):
+    usuario = db.query(models.Usuario).filter(models.Usuario.email == dados.email).first()
+
+    if usuario:
+        token = secrets.token_urlsafe(24)
+        expira_em = datetime.now(timezone.utc) + timedelta(minutes=20)
+        TOKENS_RECUPERACAO[token] = {
+            "usuario_id": usuario.id,
+            "email": usuario.email,
+            "expira_em": expira_em,
+        }
+        logger.info(f"SOLICITAÇÃO DE REDEFINIÇÃO DE SENHA: Usuário ID={usuario.id}, Email={usuario.email}")
+        return {
+            "mensagem": "Se o e-mail estiver cadastrado, as instruções de redefinição foram geradas.",
+            "token_teste": token,
+        }
+
+    logger.warning(f"SOLICITAÇÃO DE REDEFINIÇÃO PARA E-MAIL NÃO CADASTRADO: {dados.email}")
+    return {
+        "mensagem": "Se o e-mail estiver cadastrado, as instruções de redefinição foram geradas."
+    }
+
+@router.post("/redefinir-senha", status_code=status.HTTP_200_OK)
+def redefinir_senha(dados: RedefinirSenhaRequest, db: Session = Depends(get_db)):
+    registro = TOKENS_RECUPERACAO.get(dados.token)
+
+    if not registro:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Token de redefinição inválido ou já utilizado."
+        )
+
+    if datetime.now(timezone.utc) > registro["expira_em"]:
+        TOKENS_RECUPERACAO.pop(dados.token, None)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="O token de redefinição expirou. Solicite um novo."
+        )
+
+    usuario = db.query(models.Usuario).filter(models.Usuario.id == registro["usuario_id"]).first()
+    if not usuario:
+        TOKENS_RECUPERACAO.pop(dados.token, None)
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Usuário não encontrado."
+        )
+
+    usuario.senha_hash = security.obter_hash_senha(dados.nova_senha)
+    db.commit()
+    TOKENS_RECUPERACAO.pop(dados.token, None)
+
+    logger.info(f"SENHA REDEFINIDA COM SUCESSO: Usuário ID={usuario.id}, Email={usuario.email}")
+    return {"mensagem": "Senha atualizada com sucesso. Faça login com a nova senha."}
