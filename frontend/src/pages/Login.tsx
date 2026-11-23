@@ -103,7 +103,7 @@ export const Login: React.FC = () => {
 
         {isCadastro && (
           <div style={{ marginBottom: '16px' }}>
-            <label style={{ fontSize: '0.85rem', color: '#a1a1aa' }}>Nome Completo / Banda</label>
+            <label style={{ fontSize: '0.85rem', color: '#a1a1aa' }}>Nome de Usuário / Banda</label>
             <input type="text" value={nome} onChange={(e) => setNome(e.target.value)} required style={{ width: '100%', padding: '10px', backgroundColor: '#27272a', border: '1px solid #3f3f46', borderRadius: '6px', color: '#fff', marginTop: '4px', outline: 'none' }} />
           </div>
         )}
