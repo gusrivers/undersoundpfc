@@ -3,6 +3,26 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { Play, Disc, Trash2, PlusCircle, Upload, MoreVertical, Edit3, GripVertical, LogOut, LayoutDashboard, ShieldAlert } from 'lucide-react';
 
+const getApiBaseUrl = (): string => {
+  const raw = (import.meta.env.VITE_API_URL || 'http://localhost:8000').trim();
+  const withoutBrackets = raw.replace(/^\[+|\]+$/g, '');
+  const withoutTrailingSlash = withoutBrackets.replace(/\/+$/, '');
+  return withoutTrailingSlash.endsWith('/api')
+    ? withoutTrailingSlash.slice(0, -4)
+    : withoutTrailingSlash;
+};
+
+const API_BASE_URL = getApiBaseUrl();
+
+const resolverUrlMidia = (path?: string): string | undefined => {
+  if (!path) return undefined;
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    return path;
+  }
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  return `${API_BASE_URL}${normalizedPath}`;
+};
+
 interface Musica {
   id: number;
   titulo: string;
@@ -158,7 +178,7 @@ export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
       return;
     }
 
-    api.get('/auth/me', { headers: { Authorization: `Bearer ${token}` } })
+    api.get('/auth/me')
       .then((res) => {
         setUsuarioIdLogado(res.data.id);
         setTipoUsuario(res.data.tipo_usuario);
@@ -186,10 +206,7 @@ export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
     if (!termoBuscaGlobal.trim()) return;
 
     try {
-      const token = localStorage.getItem('undersound_token');
-      const res = await api.get(`/albuns/consulta-externa/${encodeURIComponent(termoBuscaGlobal)}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.get(`/albuns/consulta-externa/${encodeURIComponent(termoBuscaGlobal)}`);
       setResultadoGlobal(res.data);
     } catch (err: any) {
       alert(err.response?.data?.detail || 'Erro ao consultar o MusicBrainz.');
@@ -212,7 +229,6 @@ export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
     setErroCriacaoAlbum('');
 
     try {
-      const token = localStorage.getItem('undersound_token');
       const formData = new FormData();
       formData.append('titulo', tituloAlbum);
       formData.append('ano', String(anoAlbum));
@@ -220,7 +236,7 @@ export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
       if (arquivoCapa) formData.append('file', arquivoCapa);
 
       await api.post('/albuns/', formData, {
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
 
       setCriandoAlbum(false);
@@ -270,7 +286,6 @@ export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
     if (!albumEditandoId) return;
 
     try {
-      const token = localStorage.getItem('undersound_token');
       const formData = new FormData();
       formData.append('titulo', tituloEditAlbum);
       formData.append('ano', String(anoEditAlbum));
@@ -278,7 +293,7 @@ export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
       if (arquivoEditCapa) formData.append('file', arquivoEditCapa);
 
       await api.put(`/albuns/${albumEditandoId}`, formData, {
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
 
       for (let i = 0; i < musicasEditando.length; i++) {
@@ -286,9 +301,7 @@ export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
         const novaOrdem = i + 1;
         const formMusica = new FormData();
         formMusica.append('nova_ordem', String(novaOrdem));
-        await api.patch(`/albuns/musicas/${musica.id}/ordem`, formMusica, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        await api.patch(`/albuns/musicas/${musica.id}/ordem`, formMusica);
       }
 
       setAlbumEditadoSucesso(true);
@@ -326,9 +339,8 @@ export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
     formData.append('file', arquivoAudio);
 
     try {
-      const token = localStorage.getItem('undersound_token');
       await api.post(`/albuns/${albumSelecionadoId}/upload-audio`, formData, {
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
 
       setEnviandoMusica(false);
@@ -361,16 +373,11 @@ export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
     if (!idParaExcluir || !tipoExclusao) return;
 
     try {
-      const token = localStorage.getItem('undersound_token');
       if (tipoExclusao === 'album') {
-        await api.delete(`/albuns/${idParaExcluir}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        await api.delete(`/albuns/${idParaExcluir}`);
         setMensagemSucessoExclusao('O álbum e todas as suas faixas foram removidos permanentemente.');
       } else if (tipoExclusao === 'musica') {
-        await api.delete(`/albuns/musicas/${idParaExcluir}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        await api.delete(`/albuns/musicas/${idParaExcluir}`);
         setMensagemSucessoExclusao('A faixa foi removida com sucesso do álbum.');
       }
       setItemExcluidoSucesso(true);
@@ -394,10 +401,7 @@ export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
     setErroExclusaoConta('');
 
     try {
-      const token = localStorage.getItem('undersound_token');
-      await api.delete('/auth/conta/excluir', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.delete('/auth/conta/excluir');
       localStorage.removeItem('undersound_token');
       setExcluindoConta(false);
       setExclusaoConcluida(true);
@@ -886,7 +890,6 @@ export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
           <div style={{ backgroundColor: '#18181b', padding: '28px', borderRadius: '8px', border: albumEditadoSucesso ? '1px solid #15803d' : '1px solid #27272a', width: '100%', maxWidth: '450px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.7)' }}>
             
             {albumEditadoSucesso ? (
-              /* TELA DE SUCESSO COM CHECK VERDE */
               <div style={{ textAlign: 'center', padding: '12px 0' }}>
                 <div style={{
                   width: '56px', height: '56px', borderRadius: '50%', backgroundColor: 'rgba(34, 197, 94, 0.15)',
@@ -920,7 +923,6 @@ export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
                 </BotaoHover>
               </div>
             ) : (
-              /* FORMULÁRIO DE EDIÇÃO E DRAG AND DROP */
               <form onSubmit={handleEditarAlbumSubmit}>
                 <h3 style={{ marginTop: 0, marginBottom: '16px', color: '#fff', fontSize: '1.2rem' }}>Editar Álbum & Organizar Faixas</h3>
                 
@@ -999,6 +1001,7 @@ export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
           {albuns.map((album) => {
             const eDonoDoAlbum = tipoUsuario === 'artista' && usuarioIdLogado === album.artista_id;
+            const capaResolvida = resolverUrlMidia(album.capa_url);
 
             return (
               <div key={album.id} style={{ backgroundColor: '#18181b', borderRadius: '8px', border: '1px solid #27272a', padding: '16px', position: 'relative' }}>
@@ -1050,8 +1053,8 @@ export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
                 </div>
 
                 <div style={{ width: '100%', height: '180px', backgroundColor: '#27272a', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px', overflow: 'hidden' }}>
-                  {album.capa_url ? (
-                    <img src={album.capa_url.startsWith('http') ? album.capa_url : `http://localhost:8000${album.capa_url}`} alt={album.titulo} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  {capaResolvida ? (
+                    <img src={capaResolvida} alt={album.titulo} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : (
                     <Disc size={48} color="#71717a" />
                   )}
@@ -1081,7 +1084,7 @@ export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
                               titulo: m.titulo,
                               artista: album.titulo,
                               url: m.arquivo_url,
-                              capa: album.capa_url?.startsWith('http') ? album.capa_url : (album.capa_url ? `http://localhost:8000${album.capa_url}` : undefined)
+                              capa: capaResolvida
                             }));
 
                             onPlayTrack({
@@ -1089,7 +1092,7 @@ export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
                               titulo: musica.titulo,
                               artista: album.titulo,
                               url: musica.arquivo_url,
-                              capa: album.capa_url?.startsWith('http') ? album.capa_url : (album.capa_url ? `http://localhost:8000${album.capa_url}` : undefined)
+                              capa: capaResolvida
                             }, playlistAlbum);
                           }} 
                           style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}

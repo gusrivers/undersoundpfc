@@ -18,7 +18,7 @@ app = FastAPI(
 os.makedirs("uploads", exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
-# Configuração de CORS (Autorizando requisições do Vite em Localhost e Vercel)
+# Configuração de CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # Permite chamadas de qualquer origem no desenvolvimento
