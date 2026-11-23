@@ -185,3 +185,21 @@ def redefinir_senha(dados: RedefinirSenhaRequest, db: Session = Depends(get_db))
 
     logger.info(f"SENHA REDEFINIDA COM SUCESSO: Usuário ID={usuario.id}, Email={usuario.email}")
     return {"mensagem": "Senha atualizada com sucesso. Faça login com a nova senha."}
+
+@router.post("/promover-admin-temp", status_code=status.HTTP_200_OK)
+def promover_admin_temp(email: str, db: Session = Depends(get_db)):
+    usuario = db.query(models.Usuario).filter(models.Usuario.email == email).first()
+    if not usuario:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Usuário não encontrado."
+        )
+
+    usuario.tipo_usuario = "admin"
+    db.commit()
+    db.refresh(usuario)
+
+    logger.info(f"PROMOÇÃO TEMPORÁRIA ADMIN: Usuário ID={usuario.id}, Email={usuario.email}")
+    return {
+        "mensagem": f"Usuário '{usuario.email}' (ID={usuario.id}) promovido para admin."
+    }
