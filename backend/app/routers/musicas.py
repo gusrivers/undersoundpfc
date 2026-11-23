@@ -11,10 +11,14 @@ from app.models import Album, Musica
 
 router = APIRouter(prefix="/api/albuns", tags=["Álbuns e Músicas"])
 
-# Diretório para armazenamento local dos arquivos de áudio
-UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "uploads")
+# Diretório único e padronizado para capas e áudios (mesmo caminho do main.py)
+BASE_UPLOADS_DIR = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "..", "uploads")
+)
+UPLOAD_DIR = BASE_UPLOADS_DIR
+DIRETORIO_UPLOADS = os.path.join(BASE_UPLOADS_DIR, "capas")
+
 os.makedirs(UPLOAD_DIR, exist_ok=True)
-DIRETORIO_UPLOADS = "uploads/capas"
 os.makedirs(DIRETORIO_UPLOADS, exist_ok=True)
 
 
