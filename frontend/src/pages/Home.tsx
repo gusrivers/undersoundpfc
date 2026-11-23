@@ -21,11 +21,20 @@ interface Album {
   musicas: Musica[];
 }
 
-interface HomeProps {
-  onPlayTrack: (track: { titulo: string; artista: string; url: string }) => void;
+interface TrackPayload {
+  id: number;
+  titulo: string;
+  artista: string;
+  url: string;
+  capa?: string;
 }
 
-export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
+interface HomeProps {
+  onPlayTrack: (track: TrackPayload, albumTracks?: TrackPayload[]) => void;
+  onResetPlayer?: () => void;
+}
+
+export const Home: React.FC<HomeProps> = ({ onPlayTrack, onResetPlayer }) => {
   const [albuns, setAlbuns] = useState<Album[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [estaLogado, setEstaLogado] = useState<boolean>(false);
@@ -154,6 +163,7 @@ export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
         },
       });
 
+      onResetPlayer?.();
       localStorage.removeItem('undersound_token');
       alert('Sua conta e dados foram excluídos com sucesso em conformidade com a LGPD.');
       navigate('/login');
@@ -257,6 +267,13 @@ export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
         >
           {albuns.map((album) => {
             const permiteGerenciar = podeGerenciarAlbum(album);
+            const albumTracks: TrackPayload[] = (album.musicas || []).map((m) => ({
+              id: m.id,
+              titulo: m.titulo,
+              artista: album.artista_nome || album.titulo,
+              url: m.arquivo_url,
+              capa: album.capa_url,
+            }));
 
             return (
               <div
@@ -325,68 +342,72 @@ export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {album.musicas &&
-                    album.musicas.map((musica) => (
-                      <div
-                        key={musica.id}
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          padding: '6px 8px',
-                          backgroundColor: '#27272a',
-                          borderRadius: '4px',
-                          gap: '8px',
-                        }}
-                      >
-                        <span
+                    album.musicas.map((musica) => {
+                      const trackPayload: TrackPayload = {
+                        id: musica.id,
+                        titulo: musica.titulo,
+                        artista: album.artista_nome || album.titulo,
+                        url: musica.arquivo_url,
+                        capa: album.capa_url,
+                      };
+
+                      return (
+                        <div
+                          key={musica.id}
                           style={{
-                            fontSize: '0.9rem',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                            flex: 1,
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            padding: '6px 8px',
+                            backgroundColor: '#27272a',
+                            borderRadius: '4px',
+                            gap: '8px',
                           }}
                         >
-                          {musica.titulo}
-                        </span>
-
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <button
-                            onClick={() =>
-                              onPlayTrack({
-                                titulo: musica.titulo,
-                                artista: album.titulo,
-                                url: musica.arquivo_url,
-                              })
-                            }
+                          <span
                             style={{
-                              background: 'none',
-                              border: 'none',
-                              color: '#22c55e',
-                              cursor: 'pointer',
+                              fontSize: '0.9rem',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                              flex: 1,
                             }}
-                            title="Reproduzir faixa"
                           >
-                            <Play size={18} />
-                          </button>
+                            {musica.titulo}
+                          </span>
 
-                          {permiteGerenciar && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <button
-                              onClick={() => handleExcluirMusica(musica.id)}
+                              onClick={() => onPlayTrack(trackPayload, albumTracks)}
                               style={{
                                 background: 'none',
                                 border: 'none',
-                                color: '#f87171',
+                                color: '#22c55e',
                                 cursor: 'pointer',
                               }}
-                              title="Excluir faixa"
+                              title="Reproduzir faixa"
                             >
-                              <Trash2 size={16} />
+                              <Play size={18} />
                             </button>
-                          )}
+
+                            {permiteGerenciar && (
+                              <button
+                                onClick={() => handleExcluirMusica(musica.id)}
+                                style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  color: '#f87171',
+                                  cursor: 'pointer',
+                                }}
+                                title="Excluir faixa"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                 </div>
               </div>
             );
