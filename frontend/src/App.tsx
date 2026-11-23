@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Login } from './pages/Login';
 import { Home } from './pages/Home';
 import { Dashboard } from './pages/Dashboard';
-import { Disc, Play, Pause, SkipBack, SkipForward, Volume2 } from 'lucide-react';
+import { Disc, Play, Pause, SkipBack, SkipForward, Volume2, VolumeX } from 'lucide-react';
 
 const getApiBaseUrl = (): string => {
   const raw = (import.meta.env.VITE_API_URL || 'http://localhost:8000').trim();
@@ -54,6 +54,8 @@ export function App() {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [progress, setProgress] = useState<number>(0);
   const [duration, setDuration] = useState<number>(0);
+  const [volume, setVolume] = useState<number>(1);
+  const [previousVolume, setPreviousVolume] = useState<number>(1);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -68,13 +70,14 @@ export function App() {
 
   useEffect(() => {
     if (audioRef.current) {
+      audioRef.current.volume = volume;
       if (isPlaying) {
         audioRef.current.play().catch(err => console.log("Erro ao reproduzir:", err));
       } else {
         audioRef.current.pause();
       }
     }
-  }, [currentTrack, isPlaying]);
+  }, [currentTrack, isPlaying, volume]);
 
   // Avançar para a próxima música automaticamente ou pelo botão
   const handleNext = () => {
@@ -86,6 +89,7 @@ export function App() {
 
       if (audioRef.current) {
         audioRef.current.load();
+        audioRef.current.volume = volume;
         audioRef.current.play().catch(err => console.log("Erro ao reproduzir:", err));
       }
     } else {
@@ -103,6 +107,7 @@ export function App() {
 
       if (audioRef.current) {
         audioRef.current.load();
+        audioRef.current.volume = volume;
         audioRef.current.play().catch(err => console.log("Erro ao reproduzir:", err));
       }
     }
@@ -125,6 +130,23 @@ export function App() {
     if (audioRef.current) {
       audioRef.current.currentTime = time;
       setProgress(time);
+    }
+  };
+
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const novoVolume = Number(e.target.value);
+    setVolume(novoVolume);
+    if (novoVolume > 0) {
+      setPreviousVolume(novoVolume);
+    }
+  };
+
+  const toggleMute = () => {
+    if (volume > 0) {
+      setPreviousVolume(volume);
+      setVolume(0);
+    } else {
+      setVolume(previousVolume > 0 ? previousVolume : 0.8);
     }
   };
 
@@ -163,6 +185,11 @@ export function App() {
             src={audioSrc}
             onTimeUpdate={handleTimeUpdate}
             onEnded={handleNext}
+            onLoadedMetadata={() => {
+              if (audioRef.current) {
+                audioRef.current.volume = volume;
+              }
+            }}
             autoPlay
           />
         )}
@@ -208,6 +235,7 @@ export function App() {
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', width: '40%' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                 <button 
+                  type="button"
                   onClick={handlePrev} 
                   style={{ background: 'none', border: 'none', color: currentIndex > 0 ? '#fff' : '#52525b', cursor: currentIndex > 0 ? 'pointer' : 'default' }}
                   title="Anterior"
@@ -216,6 +244,7 @@ export function App() {
                 </button>
 
                 <button 
+                  type="button"
                   onClick={togglePlay} 
                   style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#ef4444', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#000' }}
                   title={isPlaying ? "Pausar" : "Reproduzir"}
@@ -224,6 +253,7 @@ export function App() {
                 </button>
 
                 <button 
+                  type="button"
                   onClick={handleNext} 
                   style={{ background: 'none', border: 'none', color: playlist.length > 0 && currentIndex < playlist.length - 1 ? '#fff' : '#52525b', cursor: 'pointer' }}
                   title="Próxima"
@@ -247,10 +277,40 @@ export function App() {
               </div>
             </div>
 
-            {/* Espaço Lateral Direito (Volume / Extras) */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px', width: '30%', color: '#a1a1aa' }}>
-              <Volume2 size={18} />
-              <span style={{ fontSize: '0.75rem' }}>Áudio Local</span>
+            {/* Espaço Lateral Direito (Controle de Volume) */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '10px', width: '30%', color: '#a1a1aa' }}>
+              <button
+                type="button"
+                onClick={toggleMute}
+                title={volume === 0 ? 'Ativar som' : 'Silenciar'}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: volume === 0 ? '#ef4444' : '#a1a1aa',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: 0
+                }}
+              >
+                {volume === 0 ? <VolumeX size={18} /> : <Volume2 size={18} />}
+              </button>
+
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.01}
+                value={volume}
+                onChange={handleVolumeChange}
+                aria-label="Volume"
+                title={`Volume: ${Math.round(volume * 100)}%`}
+                style={{ width: '95px', accentColor: '#ef4444', cursor: 'pointer', height: '4px' }}
+              />
+
+              <span style={{ fontSize: '0.75rem', minWidth: '34px', textAlign: 'right' }}>
+                {Math.round(volume * 100)}%
+              </span>
             </div>
           </div>
         )}
