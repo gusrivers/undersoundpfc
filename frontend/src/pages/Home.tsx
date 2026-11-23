@@ -16,11 +16,39 @@ const API_BASE_URL = getApiBaseUrl();
 
 const resolverUrlMidia = (path?: string): string | undefined => {
   if (!path) return undefined;
-  if (path.startsWith('http://') || path.startsWith('https://')) {
-    return path;
+  const trimmed = path.trim();
+  if (!trimmed) return undefined;
+  if (trimmed.startsWith('http://localhost:8000') || trimmed.startsWith('https://localhost:8000')) {
+    return trimmed.replace(/^https?:\/\/localhost:8000/, API_BASE_URL);
   }
-  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    return trimmed;
+  }
+  const normalizedPath = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
   return `${API_BASE_URL}${normalizedPath}`;
+};
+
+const extrairDuracaoAudio = (file: File, fallbackSegundos = 0): Promise<number> => {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const audio = document.createElement('audio');
+    audio.preload = 'metadata';
+
+    const limparEResolver = (segundos: number) => {
+      URL.revokeObjectURL(url);
+      resolve(Number.isFinite(segundos) && segundos > 0 ? Math.round(segundos) : fallbackSegundos);
+    };
+
+    audio.onloadedmetadata = () => {
+      limparEResolver(audio.duration);
+    };
+
+    audio.onerror = () => {
+      limparEResolver(fallbackSegundos);
+    };
+
+    audio.src = url;
+  });
 };
 
 interface Musica {
@@ -142,9 +170,10 @@ export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
   const [modalMusicaAberto, setModalMusicaAberto] = useState<boolean>(false);
   const [albumSelecionadoId, setAlbumSelecionadoId] = useState<number | null>(null);
   const [tituloMusica, setTituloMusica] = useState<string>('');
-  const [duracaoMusica, setDuracaoMusica] = useState<number>(180);
+  const [duracaoMusica, setDuracaoMusica] = useState<number>(0);
   const [ordemMusica, setOrdemMusica] = useState<number>(1);
   const [arquivoAudio, setArquivoAudio] = useState<File | null>(null);
+  const [lendoDuracao, setLendoDuracao] = useState<boolean>(false);
   const [enviandoMusica, setEnviandoMusica] = useState<boolean>(false);
   const [erroEnvioMusica, setErroEnvioMusica] = useState<string>('');
   const [musicaEnviadaSucesso, setMusicaEnviadaSucesso] = useState<boolean>(false);
@@ -312,14 +341,34 @@ export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
   };
 
   const abrirModalUploadMusica = (albumId: number) => {
+    const albumAlvo = albuns.find((a) => a.id === albumId);
+    const proximaOrdem = (albumAlvo?.musicas?.length || 0) + 1;
+
     setAlbumSelecionadoId(albumId);
     setTituloMusica('');
-    setOrdemMusica(1);
-    setDuracaoMusica(180);
+    setOrdemMusica(proximaOrdem);
+    setDuracaoMusica(0);
     setArquivoAudio(null);
+    setLendoDuracao(false);
     setErroEnvioMusica('');
     setMusicaEnviadaSucesso(false);
     setModalMusicaAberto(true);
+  };
+
+  const handleSelecionarAudio = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setArquivoAudio(file);
+    setErroEnvioMusica('');
+
+    if (!file) {
+      setDuracaoMusica(0);
+      return;
+    }
+
+    setLendoDuracao(true);
+    const duracaoDetectada = await extrairDuracaoAudio(file, 0);
+    setDuracaoMusica(duracaoDetectada);
+    setLendoDuracao(false);
   };
 
   const handleUploadMusica = async (e: React.FormEvent) => {
@@ -332,9 +381,13 @@ export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
     setEnviandoMusica(true);
     setErroEnvioMusica('');
 
+    const duracaoFinal = duracaoMusica > 0
+      ? duracaoMusica
+      : await extrairDuracaoAudio(arquivoAudio, 0);
+
     const formData = new FormData();
     formData.append('titulo', tituloMusica);
-    formData.append('duracao_segundos', String(duracaoMusica));
+    formData.append('duracao_segundos', String(duracaoFinal));
     formData.append('ordem', String(ordemMusica));
     formData.append('file', arquivoAudio);
 
@@ -682,7 +735,7 @@ export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
         </div>
       )}
 
-      {/* Modal Upload de Música (Com Feedback Visual de Sucesso) */}
+      {/* Modal Upload de Música (Ordem e Duração Automáticas) */}
       {modalMusicaAberto && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0,0,0,0.85)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '16px' }}>
           <div style={{ backgroundColor: '#18181b', padding: '28px', borderRadius: '8px', border: musicaEnviadaSucesso ? '1px solid #15803d' : '1px solid #27272a', width: '100%', maxWidth: '420px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.7)' }}>
@@ -726,25 +779,49 @@ export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
                   </div>
                 )}
 
-                <div style={{ marginBottom: '12px' }}>
+                <div style={{ marginBottom: '14px' }}>
                   <label style={{ fontSize: '0.85rem', color: '#a1a1aa' }}>Título da Música</label>
-                  <input type="text" value={tituloMusica} onChange={(e) => setTituloMusica(e.target.value)} required style={{ width: '100%', padding: '10px', backgroundColor: '#27272a', border: '1px solid #3f3f46', borderRadius: '6px', color: '#fff', marginTop: '4px', outline: 'none' }} />
+                  <input
+                    type="text"
+                    value={tituloMusica}
+                    onChange={(e) => setTituloMusica(e.target.value)}
+                    required
+                    style={{ width: '100%', padding: '10px', backgroundColor: '#27272a', border: '1px solid #3f3f46', borderRadius: '6px', color: '#fff', marginTop: '4px', outline: 'none' }}
+                  />
                 </div>
-                <div style={{ marginBottom: '12px' }}>
-                  <label style={{ fontSize: '0.85rem', color: '#a1a1aa' }}>Número da Faixa (Ordem)</label>
-                  <input type="number" value={ordemMusica} onChange={(e) => setOrdemMusica(Number(e.target.value))} required style={{ width: '100%', padding: '10px', backgroundColor: '#27272a', border: '1px solid #3f3f46', borderRadius: '6px', color: '#fff', marginTop: '4px', outline: 'none' }} />
-                </div>
-                <div style={{ marginBottom: '12px' }}>
-                  <label style={{ fontSize: '0.85rem', color: '#a1a1aa' }}>Duração (segundos)</label>
-                  <input type="number" value={duracaoMusica} onChange={(e) => setDuracaoMusica(Number(e.target.value))} required style={{ width: '100%', padding: '10px', backgroundColor: '#27272a', border: '1px solid #3f3f46', borderRadius: '6px', color: '#fff', marginTop: '4px', outline: 'none' }} />
-                </div>
+
                 <div style={{ marginBottom: '20px' }}>
                   <label style={{ fontSize: '0.85rem', color: '#a1a1aa' }}>Arquivo de Áudio (.mp3, .wav, .mpeg)</label>
-                  <input type="file" accept="audio/*,video/mpeg,.mpeg,.mpg" onChange={(e) => setArquivoAudio(e.target.files ? e.target.files[0] : null)} required style={{ width: '100%', marginTop: '4px', color: '#fff' }} />
+                  <input
+                    type="file"
+                    accept="audio/*,video/mpeg,.mpeg,.mpg"
+                    onChange={handleSelecionarAudio}
+                    required
+                    style={{ width: '100%', marginTop: '4px', color: '#fff' }}
+                  />
+                  {arquivoAudio && (
+                    <p style={{ fontSize: '0.75rem', color: '#a1a1aa', margin: '6px 0 0 0' }}>
+                      {lendoDuracao
+                        ? 'Detectando duração da faixa...'
+                        : `Faixa #${ordemMusica} • Duração detectada: ${duracaoMusica}s`}
+                    </p>
+                  )}
                 </div>
+
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                  <BotaoHover variant="secondary" disabled={enviandoMusica} onClick={() => setModalMusicaAberto(false)} style={{ padding: '8px 16px', backgroundColor: '#27272a', color: '#fff', border: '1px solid #3f3f46', borderRadius: '6px' }}>Cancelar</BotaoHover>
-                  <BotaoHover type="submit" disabled={enviandoMusica} style={{ padding: '8px 16px', backgroundColor: '#ef4444', color: '#fff', fontWeight: 'bold', border: 'none', borderRadius: '6px' }}>
+                  <BotaoHover
+                    variant="secondary"
+                    disabled={enviandoMusica}
+                    onClick={() => setModalMusicaAberto(false)}
+                    style={{ padding: '8px 16px', backgroundColor: '#27272a', color: '#fff', border: '1px solid #3f3f46', borderRadius: '6px' }}
+                  >
+                    Cancelar
+                  </BotaoHover>
+                  <BotaoHover
+                    type="submit"
+                    disabled={enviandoMusica || lendoDuracao}
+                    style={{ padding: '8px 16px', backgroundColor: '#ef4444', color: '#fff', fontWeight: 'bold', border: 'none', borderRadius: '6px' }}
+                  >
                     {enviandoMusica ? 'Enviando...' : 'Enviar Áudio'}
                   </BotaoHover>
                 </div>
