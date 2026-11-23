@@ -80,6 +80,7 @@ interface Track {
 
 interface HomeProps {
   onPlayTrack: (track: Track, albumTracks?: Track[]) => void;
+  onResetPlayer?: () => void;
 }
 
 const BotaoHover = ({ children, style, onClick, title, type = "button", variant = "primary", disabled = false }: any) => {
@@ -136,7 +137,7 @@ const BotaoHover = ({ children, style, onClick, title, type = "button", variant 
   );
 };
 
-export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
+export const Home: React.FC<HomeProps> = ({ onPlayTrack, onResetPlayer }) => {
   const [albuns, setAlbuns] = useState<Album[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [usuarioIdLogado, setUsuarioIdLogado] = useState<number | null>(null);
@@ -203,6 +204,7 @@ export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
   useEffect(() => {
     const token = localStorage.getItem('undersound_token');
     if (!token) {
+      onResetPlayer?.();
       navigate('/login');
       return;
     }
@@ -226,6 +228,7 @@ export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
   };
 
   const handleLogout = () => {
+    onResetPlayer?.();
     localStorage.removeItem('undersound_token');
     navigate('/login');
   };
@@ -455,6 +458,7 @@ export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
 
     try {
       await api.delete('/auth/conta/excluir');
+      onResetPlayer?.();
       localStorage.removeItem('undersound_token');
       setExcluindoConta(false);
       setExclusaoConcluida(true);
@@ -586,7 +590,10 @@ export const Home: React.FC<HomeProps> = ({ onPlayTrack }) => {
                 </p>
 
                 <BotaoHover
-                  onClick={() => navigate('/login')}
+                  onClick={() => {
+                    onResetPlayer?.();
+                    navigate('/login');
+                  }}
                   style={{
                     width: '100%', padding: '10px 16px', backgroundColor: '#ef4444',
                     color: '#fff', border: 'none', borderRadius: '6px',
