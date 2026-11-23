@@ -192,7 +192,7 @@ function AppContent() {
           path="/"
           element={
             <RotaPrivada>
-              <Home onPlayTrack={handlePlayTrack} onResetPlayer={resetPlayer} />
+              <Home onPlayTrack={handlePlayTrack} />
             </RotaPrivada>
           }
         />
