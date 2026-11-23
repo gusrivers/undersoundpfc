@@ -5,7 +5,34 @@ import { Home } from './pages/Home';
 import { Dashboard } from './pages/Dashboard';
 import { Disc, Play, Pause, SkipBack, SkipForward, Volume2 } from 'lucide-react';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const getApiBaseUrl = (): string => {
+  const raw = (import.meta.env.VITE_API_URL || 'http://localhost:8000').trim();
+  const withoutBrackets = raw.replace(/^\[+|\]+$/g, '');
+  const withoutTrailingSlash = withoutBrackets.replace(/\/+$/, '');
+  return withoutTrailingSlash.endsWith('/api')
+    ? withoutTrailingSlash.slice(0, -4)
+    : withoutTrailingSlash;
+};
+
+const API_URL = getApiBaseUrl();
+
+const resolverUrlMedia = (path?: string): string | undefined => {
+  if (!path) return undefined;
+
+  const trimmed = path.trim();
+  if (!trimmed) return undefined;
+
+  if (trimmed.startsWith('http://localhost:8000') || trimmed.startsWith('https://localhost:8000')) {
+    return trimmed.replace(/^https?:\/\/localhost:8000/, API_URL);
+  }
+
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    return trimmed;
+  }
+
+  const normalizedPath = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+  return `${API_URL}${normalizedPath}`;
+};
 
 const RotaPrivada = ({ children }: { children: React.JSX.Element }) => {
   const token = localStorage.getItem('undersound_token');
@@ -108,6 +135,9 @@ export function App() {
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
+  const audioSrc = currentTrack ? resolverUrlMedia(currentTrack.url) : undefined;
+  const capaSrc = currentTrack ? resolverUrlMedia(currentTrack.capa) : undefined;
+
   return (
     <BrowserRouter>
       <div style={{ minHeight: '100vh', backgroundColor: '#09090b', position: 'relative', paddingBottom: '100px' }}>
@@ -125,11 +155,12 @@ export function App() {
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
 
-        {currentTrack && (
+        {/* Elemento de Áudio Oculto com 'key' para forçar a troca correta da URL */}
+        {currentTrack && audioSrc && (
           <audio
             ref={audioRef}
-            key={currentTrack.url}
-            src={currentTrack.url.startsWith('http') ? currentTrack.url : `${API_URL}${currentTrack.url}`}
+            key={audioSrc}
+            src={audioSrc}
             onTimeUpdate={handleTimeUpdate}
             onEnded={handleNext}
             autoPlay
@@ -157,8 +188,8 @@ export function App() {
             {/* Info da Música e Capa */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '14px', width: '30%' }}>
               <div style={{ width: '52px', height: '52px', backgroundColor: '#27272a', borderRadius: '6px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                {currentTrack.capa ? (
-                  <img src={currentTrack.capa.startsWith('http') ? currentTrack.capa : `${API_URL}${currentTrack.capa}`} alt="Capa" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                {capaSrc ? (
+                  <img src={capaSrc} alt="Capa" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
                   <Disc size={26} color="#71717a" />
                 )}
