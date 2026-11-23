@@ -513,4 +513,4 @@ export const Home: React.FC<HomeProps> = ({ onPlayTrack, onResetPlayer }) => {
       )}
     </div>
   );
-};
+};  
