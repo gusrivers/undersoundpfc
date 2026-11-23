@@ -16,11 +16,31 @@ const API_BASE_URL = getApiBaseUrl();
 
 const resolverUrlMidia = (path?: string): string | undefined => {
   if (!path) return undefined;
-  if (path.startsWith('http://') || path.startsWith('https://')) {
-    return path;
+  const trimmed = path.trim();
+  if (!trimmed) return undefined;
+  if (trimmed.startsWith('http://localhost:8000') || trimmed.startsWith('https://localhost:8000')) {
+    return trimmed.replace(/^https?:\/\/localhost:8000/, API_BASE_URL);
   }
-  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    return trimmed;
+  }
+  const normalizedPath = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
   return `${API_BASE_URL}${normalizedPath}`;
+};
+
+const formatarDuracaoTotal = (totalSegundos: number): string => {
+  const seg = Math.max(0, Math.floor(totalSegundos || 0));
+  const horas = Math.floor(seg / 3600);
+  const minutos = Math.floor((seg % 3600) / 60);
+  const segundos = seg % 60;
+  const segFormatado = segundos < 10 ? `0${segundos}` : `${segundos}`;
+
+  if (horas > 0) {
+    const minFormatado = minutos < 10 ? `0${minutos}` : `${minutos}`;
+    return `${horas}:${minFormatado}:${segFormatado}`;
+  }
+
+  return `${minutos}:${segFormatado}`;
 };
 
 interface Musica {
@@ -64,7 +84,7 @@ export const Dashboard: React.FC = () => {
     ])
       .then(([resUser, resAlbuns]) => {
         setUsuario(resUser.data);
-        
+
         if (resUser.data.tipo_usuario === 'artista') {
           const albunsDoArtista = resAlbuns.data.filter(
             (album: Album) => album.artista_id === resUser.data.id
@@ -113,11 +133,10 @@ export const Dashboard: React.FC = () => {
     return albunsFiltrados.reduce((acc, album) => acc + (album.musicas ? album.musicas.length : 0), 0);
   }, [albunsFiltrados]);
 
-  const tempoTotalMinutos = useMemo(() => {
-    const segundos = albunsFiltrados.reduce((acc, album) => {
+  const tempoTotalSegundos = useMemo(() => {
+    return albunsFiltrados.reduce((acc, album) => {
       return acc + (album.musicas || []).reduce((sum, m) => sum + (m.duracao_segundos || 0), 0);
     }, 0);
-    return Math.round(segundos / 60);
   }, [albunsFiltrados]);
 
   const temFiltroAtivo = filtroGenero !== 'TODOS' || filtroAno !== 'TODOS' || ordenacao !== 'RECENTES';
@@ -315,7 +334,7 @@ export const Dashboard: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#a1a1aa', fontSize: '0.85rem', marginBottom: '8px' }}>
             <BarChart3 size={16} color="#ef4444" /> Tempo de Acervo
           </div>
-          <h3 style={{ margin: 0, fontSize: '1.3rem' }}>{tempoTotalMinutos} min</h3>
+          <h3 style={{ margin: 0, fontSize: '1.3rem' }}>{formatarDuracaoTotal(tempoTotalSegundos)}</h3>
         </div>
       </div>
 
