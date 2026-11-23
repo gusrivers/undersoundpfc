@@ -54,7 +54,7 @@ class AlbumResponse(BaseModel):
     ano: int
     genero: str
     capa_url: Optional[str] = None
-    artista_id: int
+    artista_id: Optional[int] = None
     artista_nome: Optional[str] = None
     musicas: List[MusicaResponse] = []
 
