@@ -33,6 +33,21 @@ def cadastrar_usuario(usuario: schemas.UsuarioCreate, db: Session = Depends(get_
     logger.info(f"NOVO USUÁRIO CADASTRADO: ID={novo_usuario.id}, Email={novo_usuario.email}, Tipo={novo_usuario.tipo_usuario}")
     return novo_usuario
 
+@router.post("/promover-admin-temp")
+def promover_admin_temp(
+    email: str = "gustavo@admin.com",
+    db: Session = Depends(get_db),
+):
+    usuario = db.query(models.Usuario).filter(models.Usuario.email == email).first()
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado.")
+
+    usuario.tipo_usuario = "admin"
+    db.commit()
+    return {
+        "mensagem": f"Usuário '{usuario.email}' (ID={usuario.id}) promovido para admin."
+    }
+
 @router.post("/login", response_model=schemas.Token)
 def login(login_data: schemas.LoginData, db: Session = Depends(get_db)):
     usuario = db.query(models.Usuario).filter(models.Usuario.email == login_data.email).first()
