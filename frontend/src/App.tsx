@@ -5,6 +5,7 @@ import { Home } from './pages/Home';
 import { Dashboard } from './pages/Dashboard';
 import { Disc, Play, Pause, SkipBack, SkipForward, Volume2 } from 'lucide-react';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const RotaPrivada = ({ children }: { children: React.JSX.Element }) => {
   const token = localStorage.getItem('undersound_token');
@@ -124,12 +125,11 @@ export function App() {
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
 
-        {/* Elemento de Áudio Oculto com 'key' para forçar a troca correta da URL */}
         {currentTrack && (
           <audio
             ref={audioRef}
             key={currentTrack.url}
-            src={currentTrack.url.startsWith('http') ? currentTrack.url : `http://localhost:8000${currentTrack.url}`}
+            src={currentTrack.url.startsWith('http') ? currentTrack.url : `${API_URL}${currentTrack.url}`}
             onTimeUpdate={handleTimeUpdate}
             onEnded={handleNext}
             autoPlay
@@ -158,7 +158,7 @@ export function App() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '14px', width: '30%' }}>
               <div style={{ width: '52px', height: '52px', backgroundColor: '#27272a', borderRadius: '6px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 {currentTrack.capa ? (
-                  <img src={currentTrack.capa.startsWith('http') ? currentTrack.capa : `http://localhost:8000${currentTrack.capa}`} alt="Capa" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={currentTrack.capa.startsWith('http') ? currentTrack.capa : `${API_URL}${currentTrack.capa}`} alt="Capa" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
                   <Disc size={26} color="#71717a" />
                 )}
