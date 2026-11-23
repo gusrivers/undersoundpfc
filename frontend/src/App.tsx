@@ -6,7 +6,7 @@ import { Dashboard } from './pages/Dashboard';
 import { Disc, Play, Pause, SkipBack, SkipForward, Volume2 } from 'lucide-react';
 
 
-const RotaPrivada = ({ children }: { children: JSX.Element }) => {
+const RotaPrivada = ({ children }: { children: React.JSX.Element }) => {
   const token = localStorage.getItem('undersound_token');
   return token ? children : <Navigate to="/login" replace />;
 };

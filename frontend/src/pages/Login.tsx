@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { LgpdModal } from '../components/LgpdModal';
-import { CheckCircle2, Radio } from 'lucide-react';
+import { CheckCircle2} from 'lucide-react';
 
 export const Login: React.FC = () => {
   const [isCadastro, setIsCadastro] = useState(false);

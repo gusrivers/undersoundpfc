@@ -46,7 +46,7 @@ export const CadastroMusica: React.FC = () => {
       
       {/* Formulário da Regra de Negócio */}
       <form onSubmit={handleCadastrar} style={{ backgroundColor: '#18181b', padding: '24px', borderRadius: '8px', border: '1px solid #27272a' }}>
-        <h2><Plus size={20} inline /> Publicar Nova Faixa / Álbum</h2>
+        <h2><Plus size={20}/> Publicar Nova Faixa / Álbum</h2>
         
         <div style={{ marginBottom: '12px' }}>
           <label style={{ fontSize: '0.85rem', color: '#a1a1aa' }}>Título do Álbum / EP</label>
@@ -81,7 +81,7 @@ export const CadastroMusica: React.FC = () => {
 
       {/* Consulta de API Externa (MusicBrainz) */}
       <div style={{ backgroundColor: '#18181b', padding: '24px', borderRadius: '8px', border: '1px solid #27272a' }}>
-        <h2><Search size={20} inline /> Integração Externa (MusicBrainz)</h2>
+        <h2><Search size={20} /> Integração Externa (MusicBrainz)</h2>
         <p style={{ fontSize: '0.85rem', color: '#a1a1aa' }}>Consulte a base de dados pública do MusicBrainz para validar informações de referência.</p>
         
         <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
-import { Disc, PlusCircle, ArrowLeft, Music, User, ShieldCheck, Filter, RotateCcw, Calendar, BarChart3 } from 'lucide-react';
+import { Disc, PlusCircle, ArrowLeft, Music, User, ShieldCheck, Filter, RotateCcw, BarChart3 } from 'lucide-react';
 
 interface Musica {
   id: number;
