@@ -1,10 +1,44 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+import os
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models, schemas, security
 from app.logger import logger
 
 router = APIRouter(prefix="/api/auth", tags=["Autenticação & LGPD"])
+admin_router = APIRouter(prefix="/api/admin", tags=["Administração & Auditoria"])
+
+LOG_FILE_PATH = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "..", "auditoria.log")
+)
+
+
+def exigir_admin(usuario_atual: models.Usuario = Depends(security.obter_usuario_atual)):
+    if usuario_atual.tipo_usuario != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Acesso restrito a administradores.",
+        )
+    return usuario_atual
+
+
+@admin_router.get("/logs")
+def ler_logs_auditoria(
+    linhas: int = Query(100, ge=1, le=1000),
+    _admin: models.Usuario = Depends(exigir_admin),
+):
+    if not os.path.exists(LOG_FILE_PATH):
+        return {"linhas": [], "total_retornado": 0}
+
+    with open(LOG_FILE_PATH, "r", encoding="utf-8", errors="replace") as f:
+        todas_linhas = [linha.rstrip("\r\n") for linha in f.readlines()]
+
+    ultimas = todas_linhas[-linhas:]
+    return {
+        "linhas": ultimas,
+        "total_retornado": len(ultimas),
+    }
+
 
 @router.post("/cadastro", response_model=schemas.UsuarioResponse, status_code=status.HTTP_201_CREATED)
 def cadastrar_usuario(usuario: schemas.UsuarioCreate, db: Session = Depends(get_db)):
@@ -33,20 +67,6 @@ def cadastrar_usuario(usuario: schemas.UsuarioCreate, db: Session = Depends(get_
     logger.info(f"NOVO USUÁRIO CADASTRADO: ID={novo_usuario.id}, Email={novo_usuario.email}, Tipo={novo_usuario.tipo_usuario}")
     return novo_usuario
 
-@router.post("/promover-admin-temp")
-def promover_admin_temp(
-    email: str = "gustavo@admin.com",
-    db: Session = Depends(get_db),
-):
-    usuario = db.query(models.Usuario).filter(models.Usuario.email == email).first()
-    if not usuario:
-        raise HTTPException(status_code=404, detail="Usuário não encontrado.")
-
-    usuario.tipo_usuario = "admin"
-    db.commit()
-    return {
-        "mensagem": f"Usuário '{usuario.email}' (ID={usuario.id}) promovido para admin."
-    }
 
 @router.post("/login", response_model=schemas.Token)
 def login(login_data: schemas.LoginData, db: Session = Depends(get_db)):
@@ -63,6 +83,7 @@ def login(login_data: schemas.LoginData, db: Session = Depends(get_db)):
     logger.info(f"LOGIN BEM-SUCEDIDO: Email={usuario.email}")
     return {"access_token": access_token, "token_type": "bearer"}
 
+
 @router.get("/me")
 def obter_usuario_atual(usuario_atual: models.Usuario = Depends(security.obter_usuario_atual)):
     return {
@@ -70,6 +91,7 @@ def obter_usuario_atual(usuario_atual: models.Usuario = Depends(security.obter_u
         "nome": usuario_atual.nome,
         "tipo_usuario": usuario_atual.tipo_usuario
     }
+
 
 @router.delete("/conta/excluir", status_code=status.HTTP_200_OK)
 def excluir_conta(
