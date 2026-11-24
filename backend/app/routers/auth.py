@@ -1,10 +1,55 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+import os, secrets
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models, schemas, security
 from app.logger import logger
+from datetime import datetime, timedelta, timezone
+from pydantic import BaseModel, EmailStr
 
 router = APIRouter(prefix="/api/auth", tags=["Autenticação & LGPD"])
+admin_router = APIRouter(prefix="/api/admin", tags=["Administração & Auditoria"])
+
+LOG_FILE_PATH = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "..", "auditoria.log")
+)
+
+class EsqueciSenhaRequest(BaseModel):
+    email: EmailStr
+
+class RedefinirSenhaRequest(BaseModel):
+    token: str
+    nova_senha: str
+
+TOKENS_RECUPERACAO: dict[str, dict] = {}
+
+
+def exigir_admin(usuario_atual: models.Usuario = Depends(security.obter_usuario_atual)):
+    if usuario_atual.tipo_usuario != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Acesso restrito a administradores.",
+        )
+    return usuario_atual
+
+
+@admin_router.get("/logs")
+def ler_logs_auditoria(
+    linhas: int = Query(100, ge=1, le=1000),
+    _admin: models.Usuario = Depends(exigir_admin),
+):
+    if not os.path.exists(LOG_FILE_PATH):
+        return {"linhas": [], "total_retornado": 0}
+
+    with open(LOG_FILE_PATH, "r", encoding="utf-8", errors="replace") as f:
+        todas_linhas = [linha.rstrip("\r\n") for linha in f.readlines()]
+
+    ultimas = todas_linhas[-linhas:]
+    return {
+        "linhas": ultimas,
+        "total_retornado": len(ultimas),
+    }
+
 
 @router.post("/cadastro", response_model=schemas.UsuarioResponse, status_code=status.HTTP_201_CREATED)
 def cadastrar_usuario(usuario: schemas.UsuarioCreate, db: Session = Depends(get_db)):
@@ -33,6 +78,7 @@ def cadastrar_usuario(usuario: schemas.UsuarioCreate, db: Session = Depends(get_
     logger.info(f"NOVO USUÁRIO CADASTRADO: ID={novo_usuario.id}, Email={novo_usuario.email}, Tipo={novo_usuario.tipo_usuario}")
     return novo_usuario
 
+
 @router.post("/login", response_model=schemas.Token)
 def login(login_data: schemas.LoginData, db: Session = Depends(get_db)):
     usuario = db.query(models.Usuario).filter(models.Usuario.email == login_data.email).first()
@@ -48,6 +94,7 @@ def login(login_data: schemas.LoginData, db: Session = Depends(get_db)):
     logger.info(f"LOGIN BEM-SUCEDIDO: Email={usuario.email}")
     return {"access_token": access_token, "token_type": "bearer"}
 
+
 @router.get("/me")
 def obter_usuario_atual(usuario_atual: models.Usuario = Depends(security.obter_usuario_atual)):
     return {
@@ -55,6 +102,7 @@ def obter_usuario_atual(usuario_atual: models.Usuario = Depends(security.obter_u
         "nome": usuario_atual.nome,
         "tipo_usuario": usuario_atual.tipo_usuario
     }
+
 
 @router.delete("/conta/excluir", status_code=status.HTTP_200_OK)
 def excluir_conta(
@@ -82,3 +130,76 @@ def excluir_conta(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Não foi possível concluir a exclusão da conta no momento."
         )
+
+@router.post("/esqueci-senha", status_code=status.HTTP_200_OK)
+def solicitar_recuperacao_senha(dados: EsqueciSenhaRequest, db: Session = Depends(get_db)):
+    usuario = db.query(models.Usuario).filter(models.Usuario.email == dados.email).first()
+
+    if usuario:
+        token = secrets.token_urlsafe(24)
+        expira_em = datetime.now(timezone.utc) + timedelta(minutes=20)
+        TOKENS_RECUPERACAO[token] = {
+            "usuario_id": usuario.id,
+            "email": usuario.email,
+            "expira_em": expira_em,
+        }
+        logger.info(f"SOLICITAÇÃO DE REDEFINIÇÃO DE SENHA: Usuário ID={usuario.id}, Email={usuario.email}")
+        return {
+            "mensagem": "Se o e-mail estiver cadastrado, as instruções de redefinição foram geradas.",
+            "token_teste": token,
+        }
+
+    logger.warning(f"SOLICITAÇÃO DE REDEFINIÇÃO PARA E-MAIL NÃO CADASTRADO: {dados.email}")
+    return {
+        "mensagem": "Se o e-mail estiver cadastrado, as instruções de redefinição foram geradas."
+    }
+
+@router.post("/redefinir-senha", status_code=status.HTTP_200_OK)
+def redefinir_senha(dados: RedefinirSenhaRequest, db: Session = Depends(get_db)):
+    registro = TOKENS_RECUPERACAO.get(dados.token)
+
+    if not registro:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Token de redefinição inválido ou já utilizado."
+        )
+
+    if datetime.now(timezone.utc) > registro["expira_em"]:
+        TOKENS_RECUPERACAO.pop(dados.token, None)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="O token de redefinição expirou. Solicite um novo."
+        )
+
+    usuario = db.query(models.Usuario).filter(models.Usuario.id == registro["usuario_id"]).first()
+    if not usuario:
+        TOKENS_RECUPERACAO.pop(dados.token, None)
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Usuário não encontrado."
+        )
+
+    usuario.senha_hash = security.obter_hash_senha(dados.nova_senha)
+    db.commit()
+    TOKENS_RECUPERACAO.pop(dados.token, None)
+
+    logger.info(f"SENHA REDEFINIDA COM SUCESSO: Usuário ID={usuario.id}, Email={usuario.email}")
+    return {"mensagem": "Senha atualizada com sucesso. Faça login com a nova senha."}
+
+@router.post("/promover-admin-temp", status_code=status.HTTP_200_OK)
+def promover_admin_temp(email: str, db: Session = Depends(get_db)):
+    usuario = db.query(models.Usuario).filter(models.Usuario.email == email).first()
+    if not usuario:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Usuário não encontrado."
+        )
+
+    usuario.tipo_usuario = "admin"
+    db.commit()
+    db.refresh(usuario)
+
+    logger.info(f"PROMOÇÃO TEMPORÁRIA ADMIN: Usuário ID={usuario.id}, Email={usuario.email}")
+    return {
+        "mensagem": f"Usuário '{usuario.email}' (ID={usuario.id}) promovido para admin."
+    }
