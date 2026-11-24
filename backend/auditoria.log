@@ -108,3 +108,19 @@ AttributeError: module 'bcrypt' has no attribute '__about__'
 2026-11-16 17:00:42,498 [INFO] AUDITORIA: �LBUM ATUALIZADO: ID=4, T�tulo='SYOTOS'
 2026-11-16 19:06:12,899 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=gutiiz_tavuu@hotmail.com
 2026-11-16 21:45:43,903 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=gutiiz_tavuu@hotmail.com
+2026-11-23 19:21:09,427 [WARNING] AUDITORIA: FALHA DE AUTENTICAÇÃO: Tentativa incorreta de login para o email: gustavo@admin.com
+2026-11-23 19:21:18,689 [INFO] AUDITORIA: NOVO USUÁRIO CADASTRADO: ID=10, Email=gustavo@admin.com, Tipo=ouvinte
+2026-11-23 19:21:21,937 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=gustavo@admin.com
+2026-11-23 20:01:28,199 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=gutiiz_tavuu@hotmail.com
+2026-11-23 20:03:15,576 [INFO] AUDITORIA: ÁLBUM CRIADO: ID=16, Título='SYOTOS' pelo Artista ID=3
+2026-11-23 20:03:50,120 [INFO] AUDITORIA: UPLOAD DE ÁUDIO REALIZADO: 'Red & Poisoned Fat.mpeg' para o Álbum ID=16
+2026-11-23 20:06:22,861 [INFO] AUDITORIA: UPLOAD DE ÁUDIO REALIZADO: 'Red & Poisoned Fat.mpeg' para o Álbum ID=16
+2026-11-23 20:06:44,270 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=gutiiz_tavuu@hotmail.com
+2026-11-23 20:09:22,548 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=gustavo@admin.com
+2026-11-23 20:20:37,750 [INFO] AUDITORIA: SOLICITAÇÃO DE REDEFINIÇÃO DE SENHA: Usuário ID=10, Email=gustavo@admin.com
+2026-11-23 20:20:50,157 [INFO] AUDITORIA: SENHA REDEFINIDA COM SUCESSO: Usuário ID=10, Email=gustavo@admin.com
+2026-11-23 20:20:58,703 [WARNING] AUDITORIA: FALHA DE AUTENTICAÇÃO: Tentativa incorreta de login para o email: gustavo@admin.com
+2026-11-23 20:21:01,872 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=gustavo@admin.com
+2026-11-23 20:44:26,919 [INFO] AUDITORIA: PROMOÇÃO TEMPORÁRIA ADMIN: Usuário ID=10, Email=gustavo@admin.com
+2026-11-23 20:44:41,432 [WARNING] AUDITORIA: FALHA DE AUTENTICAÇÃO: Tentativa incorreta de login para o email: gustavo@admin.com
+2026-11-23 20:44:44,283 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=gustavo@admin.com
