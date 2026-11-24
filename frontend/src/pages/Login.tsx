@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { LgpdModal } from '../components/LgpdModal';
-import { CheckCircle2, X } from 'lucide-react';
+import { CheckCircle2, Eye, EyeOff, X } from 'lucide-react';
 
 export const Login: React.FC = () => {
   const [isCadastro, setIsCadastro] = useState(false);
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
+  const [mostrarSenha, setMostrarSenha] = useState(false);
   const [tipoUsuario, setTipoUsuario] = useState('ouvinte');
   const [aceitouLgpd, setAceitouLgpd] = useState(false);
   const [modalLgpdAberto, setModalLgpdAberto] = useState(false);
@@ -21,6 +22,7 @@ export const Login: React.FC = () => {
   const [emailRecuperacao, setEmailRecuperacao] = useState('');
   const [tokenRecuperacao, setTokenRecuperacao] = useState('');
   const [novaSenha, setNovaSenha] = useState('');
+  const [mostrarNovaSenha, setMostrarNovaSenha] = useState(false);
   const [carregandoRecuperacao, setCarregandoRecuperacao] = useState(false);
   const [erroRecuperacao, setErroRecuperacao] = useState('');
   const [infoRecuperacao, setInfoRecuperacao] = useState('');
@@ -42,6 +44,7 @@ export const Login: React.FC = () => {
           nome, email, senha, tipo_usuario: tipoUsuario, aceitou_termos_lgpd: aceitouLgpd
         });
         setSenha('');
+        setMostrarSenha(false);
         setIsCadastro(false);
         setMensagemSucesso('Cadastro realizado com sucesso! Insira sua senha para entrar.');
       } else {
@@ -58,10 +61,16 @@ export const Login: React.FC = () => {
     setEmailRecuperacao(email);
     setTokenRecuperacao('');
     setNovaSenha('');
+    setMostrarNovaSenha(false);
     setErroRecuperacao('');
     setInfoRecuperacao('');
     setEtapaRecuperacao('solicitar');
     setModalRecuperacaoAberto(true);
+  };
+
+  const fecharModalRecuperacao = () => {
+    setMostrarNovaSenha(false);
+    setModalRecuperacaoAberto(false);
   };
 
   const handleSolicitarToken = async (e: React.FormEvent) => {
@@ -99,8 +108,10 @@ export const Login: React.FC = () => {
         token: tokenRecuperacao.trim(),
         nova_senha: novaSenha,
       });
+      setMostrarNovaSenha(false);
       setModalRecuperacaoAberto(false);
       setSenha('');
+      setMostrarSenha(false);
       setMensagemSucesso(res.data.mensagem || 'Senha atualizada com sucesso!');
     } catch (err: any) {
       setErroRecuperacao(err.response?.data?.detail || 'Não foi possível redefinir a senha.');
@@ -134,7 +145,20 @@ export const Login: React.FC = () => {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} style={{ backgroundColor: '#18181b', padding: '32px', borderRadius: '12px', border: '1px solid #27272a', width: '100%', maxWidth: '400px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)' }}>
+      <form
+        onSubmit={handleSubmit}
+        style={{
+          backgroundColor: '#18181b',
+          padding: '32px',
+          borderRadius: '12px',
+          border: '1px solid #27272a',
+          width: '100%',
+          maxWidth: '400px',
+          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)',
+          boxSizing: 'border-box',
+          textAlign: 'left'
+        }}
+      >
         <h2 style={{ margin: '0 0 20px 0', textAlign: 'center', fontSize: '1.2rem', color: '#e4e4e7' }}>
           {isCadastro ? 'Criar Nova Conta' : 'Acessar Undersound'}
         </h2>
@@ -164,20 +188,96 @@ export const Login: React.FC = () => {
         )}
 
         {isCadastro && (
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ fontSize: '0.85rem', color: '#a1a1aa' }}>Nome Completo / Banda</label>
-            <input type="text" value={nome} onChange={(e) => setNome(e.target.value)} required style={{ width: '100%', padding: '10px', backgroundColor: '#27272a', border: '1px solid #3f3f46', borderRadius: '6px', color: '#fff', marginTop: '4px', outline: 'none' }} />
+          <div style={{ marginBottom: '16px', textAlign: 'left' }}>
+            <label style={{ display: 'block', textAlign: 'left', fontSize: '0.85rem', color: '#a1a1aa' }}>
+              Nome Completo / Banda
+            </label>
+            <input
+              type="text"
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+              required
+              style={{
+                width: '100%',
+                padding: '10px',
+                backgroundColor: '#27272a',
+                border: '1px solid #3f3f46',
+                borderRadius: '6px',
+                color: '#fff',
+                marginTop: '4px',
+                outline: 'none',
+                boxSizing: 'border-box'
+              }}
+            />
           </div>
         )}
 
-        <div style={{ marginBottom: '16px' }}>
-          <label style={{ fontSize: '0.85rem', color: '#a1a1aa' }}>E-mail</label>
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required style={{ width: '100%', padding: '10px', backgroundColor: '#27272a', border: '1px solid #3f3f46', borderRadius: '6px', color: '#fff', marginTop: '4px', outline: 'none' }} />
+        <div style={{ marginBottom: '16px', textAlign: 'left' }}>
+          <label style={{ display: 'block', textAlign: 'left', fontSize: '0.85rem', color: '#a1a1aa' }}>
+            E-mail
+          </label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            style={{
+              width: '100%',
+              padding: '10px',
+              backgroundColor: '#27272a',
+              border: '1px solid #3f3f46',
+              borderRadius: '6px',
+              color: '#fff',
+              marginTop: '4px',
+              outline: 'none',
+              boxSizing: 'border-box'
+            }}
+          />
         </div>
 
-        <div style={{ marginBottom: isCadastro ? '16px' : '10px' }}>
-          <label style={{ fontSize: '0.85rem', color: '#a1a1aa' }}>Senha</label>
-          <input type="password" value={senha} onChange={(e) => setSenha(e.target.value)} required style={{ width: '100%', padding: '10px', backgroundColor: '#27272a', border: '1px solid #3f3f46', borderRadius: '6px', color: '#fff', marginTop: '4px', outline: 'none' }} />
+        <div style={{ marginBottom: isCadastro ? '16px' : '10px', textAlign: 'left' }}>
+          <label style={{ display: 'block', textAlign: 'left', fontSize: '0.85rem', color: '#a1a1aa' }}>
+            Senha
+          </label>
+          <div style={{ position: 'relative', marginTop: '4px' }}>
+            <input
+              type={mostrarSenha ? 'text' : 'password'}
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
+              required
+              style={{
+                width: '100%',
+                padding: '10px 40px 10px 10px',
+                backgroundColor: '#27272a',
+                border: '1px solid #3f3f46',
+                borderRadius: '6px',
+                color: '#fff',
+                outline: 'none',
+                boxSizing: 'border-box'
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => setMostrarSenha((prev) => !prev)}
+              aria-label={mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'}
+              title={mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'}
+              style={{
+                position: 'absolute',
+                right: '10px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                background: 'transparent',
+                border: 'none',
+                color: '#a1a1aa',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                padding: '2px'
+              }}
+            >
+              {mostrarSenha ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
         </div>
 
         {!isCadastro && (
@@ -193,19 +293,44 @@ export const Login: React.FC = () => {
 
         {isCadastro && (
           <>
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ fontSize: '0.85rem', color: '#a1a1aa' }}>Tipo de Perfil</label>
-              <select value={tipoUsuario} onChange={(e) => setTipoUsuario(e.target.value)} style={{ width: '100%', padding: '10px', backgroundColor: '#27272a', border: '1px solid #3f3f46', borderRadius: '6px', color: '#fff', marginTop: '4px', outline: 'none' }}>
+            <div style={{ marginBottom: '16px', textAlign: 'left' }}>
+              <label style={{ display: 'block', textAlign: 'left', fontSize: '0.85rem', color: '#a1a1aa' }}>
+                Tipo de Perfil
+              </label>
+              <select
+                value={tipoUsuario}
+                onChange={(e) => setTipoUsuario(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  backgroundColor: '#27272a',
+                  border: '1px solid #3f3f46',
+                  borderRadius: '6px',
+                  color: '#fff',
+                  marginTop: '4px',
+                  outline: 'none',
+                  boxSizing: 'border-box'
+                }}
+              >
                 <option value="ouvinte">Ouvinte / Fã</option>
                 <option value="artista">Artista / Banda Independentes</option>
               </select>
             </div>
 
-            <div style={{ marginBottom: '20px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <input type="checkbox" id="lgpd" checked={aceitouLgpd} onChange={(e) => setAceitouLgpd(e.target.checked)} style={{ accentColor: '#ef4444', cursor: 'pointer', width: '16px', height: '16px' }} />
-              <label htmlFor="lgpd" style={{ cursor: 'pointer', color: '#d4d4d8' }}>
+            <div style={{ marginBottom: '20px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px', textAlign: 'left' }}>
+              <input
+                type="checkbox"
+                id="lgpd"
+                checked={aceitouLgpd}
+                onChange={(e) => setAceitouLgpd(e.target.checked)}
+                style={{ accentColor: '#ef4444', cursor: 'pointer', width: '16px', height: '16px', flexShrink: 0 }}
+              />
+              <label htmlFor="lgpd" style={{ cursor: 'pointer', color: '#d4d4d8', textAlign: 'left' }}>
                 Li e aceito os{' '}
-                <span onClick={(e) => { e.preventDefault(); setModalLgpdAberto(true); }} style={{ color: '#ef4444', textDecoration: 'underline', cursor: 'pointer', fontWeight: 'bold' }}>
+                <span
+                  onClick={(e) => { e.preventDefault(); setModalLgpdAberto(true); }}
+                  style={{ color: '#ef4444', textDecoration: 'underline', cursor: 'pointer', fontWeight: 'bold' }}
+                >
                   Termos de Uso e Privacidade (LGPD)
                 </span>
               </label>
@@ -213,14 +338,28 @@ export const Login: React.FC = () => {
           </>
         )}
 
-        <button type="submit" style={{ width: '100%', padding: '12px', backgroundColor: '#ef4444', color: '#fff', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.95rem' }}>
+        <button
+          type="submit"
+          style={{
+            width: '100%',
+            padding: '12px',
+            backgroundColor: '#ef4444',
+            color: '#fff',
+            fontWeight: 'bold',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontSize: '0.95rem',
+            boxSizing: 'border-box'
+          }}
+        >
           {isCadastro ? 'Cadastrar Conta' : 'Entrar'}
         </button>
 
         <p style={{ textAlign: 'center', marginTop: '16px', fontSize: '0.85rem', color: '#a1a1aa' }}>
           {isCadastro ? 'Já possui conta?' : 'Não tem conta?'}{' '}
           <span
-            onClick={() => { setIsCadastro(!isCadastro); setErro(''); setMensagemSucesso(''); }}
+            onClick={() => { setIsCadastro(!isCadastro); setMostrarSenha(false); setErro(''); setMensagemSucesso(''); }}
             style={{ color: '#ef4444', cursor: 'pointer', textDecoration: 'underline', fontWeight: 'bold' }}
           >
             {isCadastro ? 'Faça Login' : 'Cadastre-se'}
@@ -230,12 +369,12 @@ export const Login: React.FC = () => {
 
       {modalRecuperacaoAberto && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0,0,0,0.85)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1100, padding: '16px' }}>
-          <div style={{ backgroundColor: '#18181b', padding: '28px', borderRadius: '8px', border: '1px solid #27272a', width: '100%', maxWidth: '420px' }}>
+          <div style={{ backgroundColor: '#18181b', padding: '28px', borderRadius: '8px', border: '1px solid #27272a', width: '100%', maxWidth: '420px', boxSizing: 'border-box', textAlign: 'left' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
               <h3 style={{ margin: 0, fontSize: '1.15rem' }}>Recuperar Senha</h3>
               <button
                 type="button"
-                onClick={() => setModalRecuperacaoAberto(false)}
+                onClick={fecharModalRecuperacao}
                 style={{ background: 'none', border: 'none', color: '#a1a1aa', cursor: 'pointer', padding: '4px' }}
                 title="Fechar"
               >
@@ -260,20 +399,32 @@ export const Login: React.FC = () => {
                 <p style={{ fontSize: '0.82rem', color: '#a1a1aa', marginTop: 0, marginBottom: '14px' }}>
                   Informe o e-mail da sua conta para gerar o token de redefinição de senha.
                 </p>
-                <div style={{ marginBottom: '18px' }}>
-                  <label style={{ fontSize: '0.85rem', color: '#a1a1aa' }}>E-mail cadastrado</label>
+                <div style={{ marginBottom: '18px', textAlign: 'left' }}>
+                  <label style={{ display: 'block', textAlign: 'left', fontSize: '0.85rem', color: '#a1a1aa' }}>
+                    E-mail cadastrado
+                  </label>
                   <input
                     type="email"
                     value={emailRecuperacao}
                     onChange={(e) => setEmailRecuperacao(e.target.value)}
                     required
-                    style={{ width: '100%', padding: '10px', backgroundColor: '#27272a', border: '1px solid #3f3f46', borderRadius: '4px', color: '#fff', marginTop: '4px', outline: 'none' }}
+                    style={{
+                      width: '100%',
+                      padding: '10px',
+                      backgroundColor: '#27272a',
+                      border: '1px solid #3f3f46',
+                      borderRadius: '4px',
+                      color: '#fff',
+                      marginTop: '4px',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
                   />
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
                   <button
                     type="button"
-                    onClick={() => setModalRecuperacaoAberto(false)}
+                    onClick={fecharModalRecuperacao}
                     style={{ padding: '8px 14px', backgroundColor: '#27272a', color: '#fff', border: '1px solid #3f3f46', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem' }}
                   >
                     Cancelar
@@ -289,30 +440,76 @@ export const Login: React.FC = () => {
               </form>
             ) : (
               <form onSubmit={handleRedefinirSenha}>
-                <div style={{ marginBottom: '12px' }}>
-                  <label style={{ fontSize: '0.85rem', color: '#a1a1aa' }}>Token de Redefinição</label>
+                <div style={{ marginBottom: '12px', textAlign: 'left' }}>
+                  <label style={{ display: 'block', textAlign: 'left', fontSize: '0.85rem', color: '#a1a1aa' }}>
+                    Token de Redefinição
+                  </label>
                   <input
                     type="text"
                     value={tokenRecuperacao}
                     onChange={(e) => setTokenRecuperacao(e.target.value)}
                     required
-                    style={{ width: '100%', padding: '10px', backgroundColor: '#27272a', border: '1px solid #3f3f46', borderRadius: '4px', color: '#fff', marginTop: '4px', outline: 'none' }}
+                    style={{
+                      width: '100%',
+                      padding: '10px',
+                      backgroundColor: '#27272a',
+                      border: '1px solid #3f3f46',
+                      borderRadius: '4px',
+                      color: '#fff',
+                      marginTop: '4px',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
                   />
                 </div>
-                <div style={{ marginBottom: '18px' }}>
-                  <label style={{ fontSize: '0.85rem', color: '#a1a1aa' }}>Nova Senha</label>
-                  <input
-                    type="password"
-                    value={novaSenha}
-                    onChange={(e) => setNovaSenha(e.target.value)}
-                    required
-                    style={{ width: '100%', padding: '10px', backgroundColor: '#27272a', border: '1px solid #3f3f46', borderRadius: '4px', color: '#fff', marginTop: '4px', outline: 'none' }}
-                  />
+                <div style={{ marginBottom: '18px', textAlign: 'left' }}>
+                  <label style={{ display: 'block', textAlign: 'left', fontSize: '0.85rem', color: '#a1a1aa' }}>
+                    Nova Senha
+                  </label>
+                  <div style={{ position: 'relative', marginTop: '4px' }}>
+                    <input
+                      type={mostrarNovaSenha ? 'text' : 'password'}
+                      value={novaSenha}
+                      onChange={(e) => setNovaSenha(e.target.value)}
+                      required
+                      style={{
+                        width: '100%',
+                        padding: '10px 40px 10px 10px',
+                        backgroundColor: '#27272a',
+                        border: '1px solid #3f3f46',
+                        borderRadius: '4px',
+                        color: '#fff',
+                        outline: 'none',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setMostrarNovaSenha((prev) => !prev)}
+                      aria-label={mostrarNovaSenha ? 'Ocultar nova senha' : 'Mostrar nova senha'}
+                      title={mostrarNovaSenha ? 'Ocultar nova senha' : 'Mostrar nova senha'}
+                      style={{
+                        position: 'absolute',
+                        right: '10px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'transparent',
+                        border: 'none',
+                        color: '#a1a1aa',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        padding: '2px'
+                      }}
+                    >
+                      {mostrarNovaSenha ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
                   <button
                     type="button"
-                    onClick={() => setEtapaRecuperacao('solicitar')}
+                    onClick={() => { setMostrarNovaSenha(false); setEtapaRecuperacao('solicitar'); }}
                     style={{ padding: '8px 12px', backgroundColor: '#27272a', color: '#a1a1aa', border: '1px solid #3f3f46', borderRadius: '4px', cursor: 'pointer', fontSize: '0.82rem' }}
                   >
                     Voltar

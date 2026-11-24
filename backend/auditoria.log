@@ -124,3 +124,45 @@ AttributeError: module 'bcrypt' has no attribute '__about__'
 2026-11-23 20:44:26,919 [INFO] AUDITORIA: PROMOÇÃO TEMPORÁRIA ADMIN: Usuário ID=10, Email=gustavo@admin.com
 2026-11-23 20:44:41,432 [WARNING] AUDITORIA: FALHA DE AUTENTICAÇÃO: Tentativa incorreta de login para o email: gustavo@admin.com
 2026-11-23 20:44:44,283 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=gustavo@admin.com
+2026-11-23 22:16:54,745 [WARNING] AUDITORIA: SOLICITAÇÃO DE REDEFINIÇÃO PARA E-MAIL NÃO CADASTRADO: gustavo@teste.com
+2026-11-23 22:34:28,504 [INFO] AUDITORIA: NOVO USUÁRIO CADASTRADO: ID=1, Email=ouvinte.album@exemplo.com, Tipo=ouvinte
+2026-11-23 22:34:28,519 [INFO] AUDITORIA: HTTP Request: POST http://testserver/api/auth/cadastro "HTTP/1.1 201 Created"
+2026-11-23 22:34:28,726 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=ouvinte.album@exemplo.com
+2026-11-23 22:34:28,728 [INFO] AUDITORIA: HTTP Request: POST http://testserver/api/auth/login "HTTP/1.1 200 OK"
+2026-11-23 22:34:28,745 [WARNING] AUDITORIA: ACESSO NEGADO: Usuário ID=1 (Ouvinte) tentou criar um álbum.
+2026-11-23 22:34:28,746 [INFO] AUDITORIA: HTTP Request: POST http://testserver/api/albuns/ "HTTP/1.1 403 Forbidden"
+2026-11-23 22:34:28,955 [INFO] AUDITORIA: NOVO USUÁRIO CADASTRADO: ID=2, Email=artista.album@exemplo.com, Tipo=artista
+2026-11-23 22:34:28,956 [INFO] AUDITORIA: HTTP Request: POST http://testserver/api/auth/cadastro "HTTP/1.1 201 Created"
+2026-11-23 22:34:29,162 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=artista.album@exemplo.com
+2026-11-23 22:34:29,164 [INFO] AUDITORIA: HTTP Request: POST http://testserver/api/auth/login "HTTP/1.1 200 OK"
+2026-11-23 22:34:29,172 [INFO] AUDITORIA: ÁLBUM CRIADO: ID=1, Título='Sessao Noturna' pelo Artista ID=2
+2026-11-23 22:34:29,176 [INFO] AUDITORIA: HTTP Request: POST http://testserver/api/albuns/ "HTTP/1.1 201 Created"
+2026-11-23 22:34:29,183 [INFO] AUDITORIA: HTTP Request: GET http://testserver/api/albuns/ "HTTP/1.1 200 OK"
+2026-11-23 22:34:29,229 [INFO] AUDITORIA: HTTP Request: GET http://testserver/api/albuns/consulta-externa/Banda%20Autoral%20Mock "HTTP/1.1 200 OK"
+2026-11-23 22:34:29,246 [WARNING] AUDITORIA: Tentativa de cadastro sem aceite da LGPD pelo email: artista.sem.lgpd@exemplo.com
+2026-11-23 22:34:29,248 [INFO] AUDITORIA: HTTP Request: POST http://testserver/api/auth/cadastro "HTTP/1.1 400 Bad Request"
+2026-11-23 22:34:29,468 [INFO] AUDITORIA: NOVO USUÁRIO CADASTRADO: ID=1, Email=banda.garagem@exemplo.com, Tipo=artista
+2026-11-23 22:34:29,469 [INFO] AUDITORIA: HTTP Request: POST http://testserver/api/auth/cadastro "HTTP/1.1 201 Created"
+2026-11-23 22:34:29,472 [INFO] AUDITORIA: HTTP Request: POST http://testserver/api/auth/cadastro "HTTP/1.1 400 Bad Request"
+2026-11-23 22:34:29,670 [WARNING] AUDITORIA: FALHA DE AUTENTICAÇÃO: Tentativa incorreta de login para o email: banda.garagem@exemplo.com
+2026-11-23 22:34:29,671 [INFO] AUDITORIA: HTTP Request: POST http://testserver/api/auth/login "HTTP/1.1 401 Unauthorized"
+2026-11-23 22:34:29,875 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=banda.garagem@exemplo.com
+2026-11-23 22:34:29,877 [INFO] AUDITORIA: HTTP Request: POST http://testserver/api/auth/login "HTTP/1.1 200 OK"
+2026-11-23 22:34:30,099 [INFO] AUDITORIA: NOVO USUÁRIO CADASTRADO: ID=1, Email=ouvinte.teste@exemplo.com, Tipo=ouvinte
+2026-11-23 22:34:30,101 [INFO] AUDITORIA: HTTP Request: POST http://testserver/api/auth/cadastro "HTTP/1.1 201 Created"
+2026-11-23 22:34:30,104 [INFO] AUDITORIA: SOLICITAÇÃO DE REDEFINIÇÃO DE SENHA: Usuário ID=1, Email=ouvinte.teste@exemplo.com
+2026-11-23 22:34:30,104 [INFO] AUDITORIA: HTTP Request: POST http://testserver/api/auth/esqueci-senha "HTTP/1.1 200 OK"
+2026-11-23 22:34:30,306 [INFO] AUDITORIA: SENHA REDEFINIDA COM SUCESSO: Usuário ID=1, Email=ouvinte.teste@exemplo.com
+2026-11-23 22:34:30,308 [INFO] AUDITORIA: HTTP Request: POST http://testserver/api/auth/redefinir-senha "HTTP/1.1 200 OK"
+2026-11-23 22:34:30,521 [WARNING] AUDITORIA: FALHA DE AUTENTICAÇÃO: Tentativa incorreta de login para o email: ouvinte.teste@exemplo.com
+2026-11-23 22:34:30,522 [INFO] AUDITORIA: HTTP Request: POST http://testserver/api/auth/login "HTTP/1.1 401 Unauthorized"
+2026-11-23 22:34:30,727 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=ouvinte.teste@exemplo.com
+2026-11-23 22:34:30,729 [INFO] AUDITORIA: HTTP Request: POST http://testserver/api/auth/login "HTTP/1.1 200 OK"
+2026-11-23 22:34:30,954 [INFO] AUDITORIA: NOVO USUÁRIO CADASTRADO: ID=1, Email=excluir@exemplo.com, Tipo=ouvinte
+2026-11-23 22:34:30,956 [INFO] AUDITORIA: HTTP Request: POST http://testserver/api/auth/cadastro "HTTP/1.1 201 Created"
+2026-11-23 22:34:31,172 [INFO] AUDITORIA: LOGIN BEM-SUCEDIDO: Email=excluir@exemplo.com
+2026-11-23 22:34:31,174 [INFO] AUDITORIA: HTTP Request: POST http://testserver/api/auth/login "HTTP/1.1 200 OK"
+2026-11-23 22:34:31,181 [INFO] AUDITORIA: EXCLUSÃO DE CONTA (LGPD): Usuário ID=1, Email=excluir@exemplo.com excluiu seus dados com sucesso.
+2026-11-23 22:34:31,182 [INFO] AUDITORIA: HTTP Request: DELETE http://testserver/api/auth/conta/excluir "HTTP/1.1 200 OK"
+2026-11-23 22:34:31,185 [WARNING] AUDITORIA: FALHA DE AUTENTICAÇÃO: Tentativa incorreta de login para o email: excluir@exemplo.com
+2026-11-23 22:34:31,185 [INFO] AUDITORIA: HTTP Request: POST http://testserver/api/auth/login "HTTP/1.1 401 Unauthorized"
